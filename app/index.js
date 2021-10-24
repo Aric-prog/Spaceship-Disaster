@@ -7,13 +7,19 @@ const { Server } = require("socket.io")
 const app = express();
 const httpServer = http.createServer(app);
 
-const io = new Server(httpServer, {})
+const io = new Server(httpServer, {
+    cors:{
+        origin: "http://localhost:3000",
+        methods: ["GET","POST"],
+    }
+})
 
 initSocket(io)
 const PORT = process.env.PORT || 3000
 
-const routes = require('./api/routes.js')
+const routes = require('./controllers/routes.js')
 
 app.use('/api', routes.api)
+app.use('/', routes.client)
 
 httpServer.listen(PORT)
