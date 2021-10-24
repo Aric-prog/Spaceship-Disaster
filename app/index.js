@@ -13,4 +13,7 @@ initSocket(io)
 const PORT = process.env.PORT || 3000
 
 const routes = require('./api/routes.js')
+
 app.use('/api', routes.api)
+
+httpServer.listen(PORT)
