@@ -4,7 +4,6 @@ const router = express.Router()
 
 router.use('/*', auth)
 router.get('/leaderboard', function(req, res){
-    console.log("tesltkj")
     // Get leaderboard data
 })
 router.post('/leaderboard', function(req, res){
