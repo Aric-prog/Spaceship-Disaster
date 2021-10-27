@@ -1,5 +1,6 @@
 function initSocket(io) {
     // Init io and event listeners here
+    
     io.on("connection", function(socket){
         console.log("poglife : " + socket.id);
 

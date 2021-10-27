@@ -9,6 +9,8 @@ class Room {
         this.playerUID = [];
         this.lives = 3;
 
-        this.timer = 0
+        this.timer = 0;
+
+        this.taskList = [];
     }
 }
