@@ -7,17 +7,22 @@
     <title>Document</title>
 </head>
 <body>
-    sup bro
-    <button onclick="startGame()"></button>
+    <div id="roomCode"></div>
+    <button onclick="createRoom()">Create Game Button</button>
 </body>
+<!-- Socket io stuff -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 <script src="https://cdn.socket.io/3.1.3/socket.io.min.js" integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh" crossorigin="anonymous"></script>
 <script>
     const socket = io('http://127.0.0.1:3000')
-    function startGame(){
-        console.log("game is getting started")
-        socket.emit("start","testarg")
+    function createRoom(){
+        socket.emit("createRoom");
+
         socket.on("timer", function(timeInSec){
-            console.log(timeInSec)
+            console.log(timeInSec);
+        })
+        socket.on("roomCreated", function(roomCode){
+            $('#roomCode').text(roomCode);
         })
     }
 </script>
