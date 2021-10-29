@@ -5,7 +5,10 @@ class Room {
         this.rounds = 1;
         
         this.teamName = teamName;
-        this.playerUID = [];
+        
+        // Structure of player UID will be SessionID : SocketID
+        // SocketID will later be used to give task to specific user 
+        this.playerUID = [{}];
         this.lives = 3;
 
         this.timer = 90;

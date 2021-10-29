@@ -17,6 +17,7 @@ function initSocket(io) {
             socket.join(roomCode);
             
             var test = new Room(roomCode, "team bruh");
+            // console.log(JSON.stringify(test));
             redisClient.json_set(roomCode, '.', JSON.stringify(test), function(err){
                 if(err){
                     console.log(err)
@@ -37,6 +38,9 @@ function initSocket(io) {
         socket.on("joinRoom", function(roomCode){
             // Check if roomcode exist in the server list
             socket.join(roomCode);
+            redisClient.json_set(roomCode, '.roomCode', "\"Rardo\"", function(err){
+                if(err){console.log(err);}; 
+            })
         });
         
         // Remove this taskSuccess to generalized input
