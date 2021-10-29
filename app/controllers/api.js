@@ -4,6 +4,9 @@ const router = express.Router()
 
 router.get('/login', function(req, res){
     // Login function that checks with database goes here
+    req.session.randomVar = 5;
+    console.log(req.session);
+    res.json("now logged in ");
 })
 
 router.use('/*', auth)

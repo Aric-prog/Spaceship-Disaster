@@ -1,13 +1,19 @@
 const { client } = require("../controllers/routes");
 const { nanoid } = require("nanoid");
+const sharedsession = require("express-socket.io-session");
+const { session } = require("../redis.js")
 function initSocket(io) {
+    io.use(sharedsession(session, {
+        autoSave : true
+    }));
     io.on("connection", function(socket){
-        const session = socket.request.session;
+        const session = socket.handshake.session;
         socket.on("createRoom", function(callback){
             // Creates an empty room and joins that, also couples their SID with the roomCode in redis
             var roomCode = "randomRoomCode";
             
-            console.log(socket.request.session);
+            socket.handshake.session.testValue = "socket has calledsomethign"
+            console.log(socket.handshake.session);
             socket.join(roomCode);
             // io.to(roomCode).emit("roomCreated", session.SID);
         });

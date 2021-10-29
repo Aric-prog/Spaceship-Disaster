@@ -17,9 +17,6 @@ const io = new Server(httpServer, {
     }
 })
 
-io.use(function(socket, next){
-    session(socket.request, socket.request.res, next)
-})
 app.use(session)
 initSocket(io)
 app.use('/', routes.client)
