@@ -1,13 +1,17 @@
 const redis = require('redis');
 const expressSession = require('express-session');
 const connectRedis = require('connect-redis');
+const rejson = require('redis-rejson')
+const config = require('./config.js');
 
 const RedisStore = connectRedis(expressSession)
 
+rejson(redis)
 const redisClient = redis.createClient({
-    port : 6379,
-    host : 'localhost'
-})
+    host : config.redis.host,
+    port : config.redis.port,
+    auth_pass : config.redis.auth
+});
 
 const session = expressSession({
     store : new RedisStore({client : redisClient}),
@@ -19,9 +23,9 @@ const session = expressSession({
         httpOnly : true,
         maxAge : 1000 * 60 * 60 * 1
     }
-})
+});
 
 module.exports = {
     redisClient,
     session
-}
+};

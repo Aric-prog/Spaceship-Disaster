@@ -7,7 +7,7 @@ const { Server } = require("socket.io")
 
 const app = express();
 const httpServer = http.createServer(app);
-const {redisClient, session} = require('./redis.js');
+const { session } = require('./redis.js');
 const routes = require('./controllers/routes.js');
 
 app.use(cors())
