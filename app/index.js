@@ -6,23 +6,24 @@ const initSocket = require('./middleware/socket.js')
 const { Server } = require("socket.io")
 
 const app = express();
-const redis = require('./redis.js');
 const httpServer = http.createServer(app);
+const {redisClient, session} = require('./redis.js');
+const routes = require('./controllers/routes.js');
 
+app.use(cors())
 const io = new Server(httpServer, {
     cors:{
-        origin: "http://localhost:3000",
-        methods: ["GET","POST"],
+        origin: "http://localhost:3000"
     }
 })
 
+io.use(function(socket, next){
+    session(socket.request, socket.request.res, next)
+})
+app.use(session)
 initSocket(io)
-const PORT = process.env.PORT || 3000
-const routes = require('./controllers/routes.js')
-
-// Session settings
-app.use(redis.redisSession)
-app.use('/api', routes.api)
 app.use('/', routes.client)
+app.use('/api', routes.api)
 
+const PORT = process.env.PORT || 3000
 httpServer.listen(PORT)

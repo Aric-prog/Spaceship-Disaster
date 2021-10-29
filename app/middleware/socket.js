@@ -1,25 +1,15 @@
 const { client } = require("../controllers/routes");
-const { nanoid } = require("nanoid")
-const { redisSession } = require("../redis.js")
+const { nanoid } = require("nanoid");
 function initSocket(io) {
-    // Init io and event listeners here
-    
-    io.use(function(socket, next){
-        redisSession(socket.request, {}, next)
-    })
     io.on("connection", function(socket){
         const session = socket.request.session;
-        
-        console.log("poglife : " + session.SID);
         socket.on("createRoom", function(callback){
             // Creates an empty room and joins that, also couples their SID with the roomCode in redis
             var roomCode = "randomRoomCode";
-            session.SID = nanoid();
-            session.save();
-
-            socket.join(roomCode);
-            io.to(roomCode).emit("roomCreated", session.SID);
             
+            console.log(socket.request.session);
+            socket.join(roomCode);
+            // io.to(roomCode).emit("roomCreated", session.SID);
         });
         socket.on("joinRoom", function(roomCode){
             // Check if roomcode exist in the server list
