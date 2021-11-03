@@ -8,13 +8,14 @@ class Room {
         
         // Structure of player UID will be SessionID : SocketID
         // SocketID will later be used to give task to specific user 
-        this.playerUID = [{}];
+        this.playerUID = [];
         this.lives = 3;
 
         this.timer = 90;
 
         // Divide this into several objects for rounds ex : [{ <round 1 task data> },{ <round 2 task data> }]
-        this.taskList = [{}];
+        // On one round end add timer
+        this.taskList = [];
     }
 }
 
