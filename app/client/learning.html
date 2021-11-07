@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+        <title>Babylon Template</title>
+
+        <style>
+            html, body {
+                overflow: hidden;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+            #renderCanvas {
+                width: 100%;
+                height: 100%;
+                touch-action: none;
+            }
+        </style>
+
+        <script src="https://cdn.babylonjs.com/babylon.js"></script>
+        <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+        <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+    </head>
+
+   <body>
+
+    <canvas id="renderCanvas" touch-action="none"></canvas> <!-- touch-action="none" for best results from PEP -->
+
+    <script>
+        const canvas = document.getElementById("renderCanvas"); // Get the canvas element
+        const engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
+
+        // Add your code here matching the playground format
+        const createScene = function () {
+    
+            const scene = new BABYLON.Scene(engine);
+            const base = generateBase();
+            const buttonPos = new BABYLON.Vector3(0,0.5,0);
+            const buttonScale = 1;
+            const sliderPos = new BABYLON.Vector3(5,0.5,0);
+            const sliderScale = 1;
+            const button = generateButton(buttonPos,buttonScale,scene);
+            generateSlider(sliderPos,sliderScale,scene);
+            const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 15, new BABYLON.Vector3(0, 0, 0));
+            camera.attachControl(canvas,true);
+            camera.setPosition(new BABYLON.Vector3(0, 20, 0));
+            const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0));
+            
+            return scene;
+        };
+
+        const scene = createScene(); //Call the createScene function
+        
+        function generateButton(position, scaling, scene){
+            const button = new BABYLON.MeshBuilder.CreateCylinder("button",{});
+            const buttonMat = new BABYLON.StandardMaterial("buttonMat");
+            const finalScaling = new BABYLON.Vector3(3*scaling,0.5,3*scaling)
+            buttonMat.diffuseColor = new BABYLON.Color3(0,0,1);
+            button.material = buttonMat;
+            button.position = position;
+            button.scaling = finalScaling;
+
+            button.actionManager = new BABYLON.ActionManager(scene);
+            button.actionManager.registerAction(
+                new BABYLON.ExecuteCodeAction(
+                    BABYLON.ActionManager.OnPickTrigger,
+                    function () {console.log('cum');}
+                )
+            );
+
+            return button;
+        }
+
+        function generateSlider(position, scaling, scene){
+            const sliderBase = new BABYLON.MeshBuilder.CreateBox("sliderBase",{});
+            const sliderBaseMat = new BABYLON.StandardMaterial("sliderBaseMat");
+            
+            sliderBaseMat.diffuseColor = new BABYLON.Color3(0,0,0);
+            sliderBase.material = sliderBaseMat;
+            sliderBase.position = position;
+            sliderBase.scaling = new BABYLON.Vector3(1,0.5,4*scaling);
+
+
+            const sliderButton = new BABYLON.MeshBuilder.CreateBox("sliderButton",{});
+            const sliderButtonMat = new BABYLON.StandardMaterial("sliderButtonMat");
+            sliderButtonMat.diffuseColor = new BABYLON.Color3(0,0,1);
+            sliderButton.material = sliderButtonMat;
+            sliderButton.scaling = new BABYLON.Vector3(1,0.2,1);
+            sliderButton.position = new BABYLON.Vector3(position['x'],position['y']+sliderBase.scaling['y']/2+sliderButton.scaling['y']/2,position['z']);
+            
+            const pointerDragBehavior = new BABYLON.PointerDragBehavior({dragAxis: new BABYLON.Vector3(0,0,1)});
+            sliderButton.addBehavior(pointerDragBehavior);
+            pointerDragBehavior.validateDrag = (targetPosition)=>{
+            if(targetPosition.z < (position['z']+sliderButton.scaling['z']/2-sliderBase.scaling['z']*scaling/2)){
+                targetPosition.z = position['z']+sliderButton.scaling['z']/2-sliderBase.scaling['z']*scaling/2
+            }
+
+            if(targetPosition.z > position['z']-sliderButton.scaling['z']/2+sliderBase.scaling['z']*scaling/2){
+                return false
+            }else{
+                return true
+            }
+            
+            }
+        }
+        function generateBase(){
+            const base = new BABYLON.MeshBuilder.CreateBox("box",{width:15,depth:15});
+            const points1 = [
+                new BABYLON.Vector3(-7.5,0.51,2.5),
+                new BABYLON.Vector3(7.5,0.51,2.5),
+                new BABYLON.Vector3(7.5,0.51,-2.5),
+                new BABYLON.Vector3(-7.5,0.51,-2.5),
+                ];
+            points1.push(points1[0]);
+            const line1 = BABYLON.MeshBuilder.CreateLines("lines1",{points:points1});
+            line1.color = new BABYLON.Color3(0,0,0);
+
+            const points2 = [
+                new BABYLON.Vector3(-2.5,0.51,7.5),
+                new BABYLON.Vector3(2.5,0.51,7.5),
+                new BABYLON.Vector3(2.5,0.51,-7.5),
+                new BABYLON.Vector3(-2.5,0.51,-7.5),
+                ];
+            points2.push(points2[0]);
+            const line2 = BABYLON.MeshBuilder.CreateLines("lines2",{points:points2});
+            line2.color = new BABYLON.Color3(0,0,0);
+
+            return base;
+        }
+        // Register a render loop to repeatedly render the scene
+        engine.runRenderLoop(function () {
+                scene.render();
+        });
+
+        // Watch for browser/canvas resize events
+        window.addEventListener("resize", function () {
+                engine.resize();
+        });
+    </script>
+
+   </body>
+
+</html>
