@@ -3,9 +3,10 @@ const path = require('path')
 const router = express.Router()
 router.get('/testing', function(req, res){
     res.sendFile(path.join(__dirname, '../client', 'test_socket.html'));
-})
+});
 router.get('/', function(req, res){
-    res.sendFile(path.join(__dirname, '../client', 'test_babylon.html'));
-})
+    res.sendFile(path.join(__dirname, '../client', 'main_menu.html'));
+});
+
 
 module.exports = router;

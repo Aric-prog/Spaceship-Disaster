@@ -1,7 +1,7 @@
 // Replace the fields and change the filename to 'config.js' to use the redis server
-const config = {}
+const config = {};
 
-config.redis = {}
+config.redis = {};
 
 config.redis.host = PUT_ENDPOINT_HERE;
 config.redis.port = PUT_PORT_HERE;

@@ -1,0 +1,16 @@
+added stub function for inputs, head hurts
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# On branch main
+# Your branch is up to date with 'origin/main'.
+#
+# Changes to be committed:
+#	new file:   app/client/test_babylon.html
+#	renamed:    app/client/test_client.html -> app/client/test_socket.html
+#	modified:   app/controllers/client.js
+#	modified:   app/middleware/socket.js
+#	modified:   app/room.js
+#	new file:   app/socket/inputHandler.js
+#	new file:   app/socket/roomHandler.js
+#

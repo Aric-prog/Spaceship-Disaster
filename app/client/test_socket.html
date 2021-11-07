@@ -29,6 +29,7 @@
         $('#roomCode').text(roomCode);
     });
     function createRoom(){
+        // Sending signal to server named createRoom
         socket.emit("createRoom");
     };
     function joinRoom(){

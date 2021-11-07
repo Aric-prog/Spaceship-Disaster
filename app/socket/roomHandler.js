@@ -9,11 +9,10 @@ module.exports = function(io){
         const sessionID = socket.handshake.sessionID;
         socket.on("createRoom", function(teamName){
             // Creates an empty room and joins that, also couples their SID with the roomCode in redis
-            console.log(sessionID)
+            console.log("whatever the fuck");
             if(!session.roomCode){
                 var roomCode = nanoid();
                 session.roomCode = roomCode;
-
                 
                 socket.join(roomCode);
                 var test = new Room(roomCode, teamName);
