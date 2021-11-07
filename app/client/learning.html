@@ -94,12 +94,18 @@
             
             const pointerDragBehavior = new BABYLON.PointerDragBehavior({dragAxis: new BABYLON.Vector3(0,0,1)});
             sliderButton.addBehavior(pointerDragBehavior);
+
+            pointerDragBehavior.onDragEndObservable.add((event)=>{
+                console.log(sliderButton.position['z']);
+                console.log(position['z']+sliderButton.scaling['z']/2-(sliderBase.scaling['z']*scaling)/2);
+                console.log(event);
+             })
             pointerDragBehavior.validateDrag = (targetPosition)=>{
-            if(targetPosition.z < (position['z']+sliderButton.scaling['z']/2-sliderBase.scaling['z']*scaling/2)){
-                targetPosition.z = position['z']+sliderButton.scaling['z']/2-sliderBase.scaling['z']*scaling/2
+            if(targetPosition.z < (position['z']+sliderButton.scaling['z']/2-(sliderBase.scaling['z']*scaling)/2)){
+                targetPosition.z = position['z']+sliderButton.scaling['z']/2-(sliderBase.scaling['z']*scaling)/2
             }
 
-            if(targetPosition.z > position['z']-sliderButton.scaling['z']/2+sliderBase.scaling['z']*scaling/2){
+            if(targetPosition.z > position['z']-sliderButton.scaling['z']/2+(sliderBase.scaling['z']*scaling)/2){
                 return false
             }else{
                 return true
