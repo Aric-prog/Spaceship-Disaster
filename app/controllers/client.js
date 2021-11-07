@@ -7,5 +7,8 @@ router.get('/testing', function(req, res){
 router.get('/', function(req, res){
     res.sendFile(path.join(__dirname, '../client', 'test_babylon.html'));
 })
+router.get('/kambing', function(req, res){
+    res.sendFile(path.join(__dirname, '../client', 'learning.html'));
+})
 
 module.exports = router;
