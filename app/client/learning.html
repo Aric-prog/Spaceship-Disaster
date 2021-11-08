@@ -59,12 +59,6 @@
 
         const scene = createScene(); //Call the createScene function
         
-        function random(min, max) {
-            min = Math.ceil(min);
-            max = Math.floor(max);
-            return Math.floor(Math.random() * (max - min + 1)) + min;
-        }
-
         function generateButton(position, scaling, scene){
             const button = new BABYLON.MeshBuilder.CreateCylinder("button",{});
             const buttonMat = new BABYLON.StandardMaterial("buttonMat");
@@ -349,7 +343,7 @@
                 new BABYLON.ExecuteCodeAction(
                     BABYLON.ActionManager.OnPickTrigger,
                     function(){
-                        if(userSequence.includes('red') == false && result != true){
+                        if(userSequence.includes('red') == false || result != 1){
                             redButtonMat.diffuseColor = new BABYLON.Color3(1,0,0);
                             userSequence.push('red');
                             result = checkSequenceResult(sequence, userSequence, sequenceButtonMat);
@@ -362,7 +356,7 @@
                 new BABYLON.ExecuteCodeAction(
                     BABYLON.ActionManager.OnPickTrigger,
                     function(){
-                        if(userSequence.includes('green') == false && result != true){
+                        if(userSequence.includes('green') == false || result != 1){
                             greenButtonMat.diffuseColor = new BABYLON.Color3(0,1,0);
                             userSequence.push('green');
                             result = checkSequenceResult(sequence, userSequence, sequenceButtonMat);
@@ -375,7 +369,7 @@
                 new BABYLON.ExecuteCodeAction(
                     BABYLON.ActionManager.OnPickTrigger,
                     function(){
-                        if(userSequence.includes('yellow') == false && result != true){
+                        if(userSequence.includes('yellow') == false || result != 1){
                             yellowButtonMat.diffuseColor = new BABYLON.Color3(1,1,0);
                             userSequence.push('yellow');
                             result = checkSequenceResult(sequence, userSequence, sequenceButtonMat); 
@@ -388,7 +382,7 @@
                 new BABYLON.ExecuteCodeAction(
                     BABYLON.ActionManager.OnPickTrigger,
                     function(){
-                        if(userSequence.includes('blue') == false && result != true){
+                        if(userSequence.includes('blue') == false || result != 1){
                             blueButtonMat.diffuseColor = new BABYLON.Color3(0,0,1);
                             userSequence.push('blue');
                             result = checkSequenceResult(sequence, userSequence, sequenceButtonMat);  
