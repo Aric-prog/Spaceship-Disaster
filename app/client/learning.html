@@ -38,13 +38,13 @@
         const createScene = function () {
     
             const scene = new BABYLON.Scene(engine);
-            const base = generateBase();
-            const buttonPos = new BABYLON.Vector3(0,0.5,0);
+            //const base = generateBaseBig();
+            const buttonPos = new BABYLON.Vector3(0,0,0);
             const buttonScale = 1;
-            const sliderPos = new BABYLON.Vector3(5,0.5,0);
-            const sliderScale = 1;
-            const button = generateButton(buttonPos,buttonScale,scene);
-            generateSlider(sliderPos,sliderScale,scene);
+            const sliderPos = new BABYLON.Vector3(0,0,-5);
+            const sliderScale = 3;
+            generateButton(buttonPos,buttonScale,scene);
+            generateSlider(sliderPos,sliderScale,scene,'horizontal');
             const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 15, new BABYLON.Vector3(0, 0, 0));
             camera.attachControl(canvas,true);
             camera.setPosition(new BABYLON.Vector3(0, 20, 0));
@@ -58,12 +58,18 @@
         function generateButton(position, scaling, scene){
             const button = new BABYLON.MeshBuilder.CreateCylinder("button",{});
             const buttonMat = new BABYLON.StandardMaterial("buttonMat");
-            const finalScaling = new BABYLON.Vector3(3*scaling,0.5,3*scaling)
-            buttonMat.diffuseColor = new BABYLON.Color3(0,0,1);
+            const buttonScaling = new BABYLON.Vector3(3*scaling,0.5,3*scaling)
+            const buttonPos = new BABYLON.Vector3(0,0,0);
+            buttonPos['x'] = position['x'];
+            buttonPos['y'] = position['y']+buttonScaling['y'];
+            buttonPos['z'] = position['z'];
+            buttonPos['z'] += 0.5*scaling;
+            buttonMat.diffuseColor = new BABYLON.Color3(0,0,0.7);
             button.material = buttonMat;
-            button.position = position;
-            button.scaling = finalScaling;
+            button.position = buttonPos;
+            button.scaling = buttonScaling;
 
+            generateBase(scaling,position,'diagonal');
             button.actionManager = new BABYLON.ActionManager(scene);
             button.actionManager.registerAction(
                 new BABYLON.ExecuteCodeAction(
@@ -71,49 +77,213 @@
                     function () {console.log('cum');}
                 )
             );
+            button.actionManager.registerAction(
+                new BABYLON.ExecuteCodeAction(
+                    BABYLON.ActionManager.OnPointerOverTrigger,
+                    function(){
+                        buttonMat.diffuseColor = new BABYLON.Color3(0,0,1);
+                    }
+                )
+            );
+            button.actionManager.registerAction(
+                new BABYLON.ExecuteCodeAction(
+                    BABYLON.ActionManager.OnPointerOutTrigger,
+                    function(){
+                        buttonMat.diffuseColor = new BABYLON.Color3(0,0,0.7);
+                    }
+                ),
+                
+            );
 
-            return button;
         }
 
-        function generateSlider(position, scaling, scene){
+        function generateBase(scaling,position,type){
+            const base = new BABYLON.MeshBuilder.CreateBox("base",{});
+            const baseScaling = new BABYLON.Vector3(5,1,5);
+            if(type == "diagonal"){
+                baseScaling['x'] *= scaling;
+                baseScaling['z'] *= scaling;
+            }
+            else if(type == 'horizontal'){
+                baseScaling['x'] *= scaling;
+            }
+            else if(type == "vertical"){
+                baseScaling['z'] *= scaling;
+            }
+            const baseMat = new BABYLON.StandardMaterial("baseMat");
+            baseMat.diffuseColor = new BABYLON.Color3(1,1,1);
+            base.position = position;
+            base.scaling = baseScaling;
+            base.material = baseMat;
+            
+            const points = [
+                new BABYLON.Vector3(position['x']-baseScaling['x']/2,position['y']+baseScaling['y']/2,position['z']-baseScaling['z']/2),
+                new BABYLON.Vector3(position['x']-baseScaling['x']/2,position['y']+baseScaling['y']/2,position['z']+baseScaling['z']/2),
+                new BABYLON.Vector3(position['x']+baseScaling['x']/2,position['y']+baseScaling['y']/2,position['z']+baseScaling['z']/2),
+                new BABYLON.Vector3(position['x']+baseScaling['x']/2,position['y']+baseScaling['y']/2,position['z']-baseScaling['z']/2),
+                ];
+            points.push(points[0]);
+            const outline = BABYLON.MeshBuilder.CreateLines("outline",{points:points});
+            outline.color = new BABYLON.Color3(1,0,0);
+        }
+
+        function generateSlider(position, scaling, scene, orientation){
             const sliderBase = new BABYLON.MeshBuilder.CreateBox("sliderBase",{});
             const sliderBaseMat = new BABYLON.StandardMaterial("sliderBaseMat");
-            
+            const sliderBaseScaling = new BABYLON.Vector3(1,0.5,1);
+            if(orientation == 'vertical'){
+                sliderBaseScaling['z'] *= scaling*3
+            } else {
+                sliderBaseScaling['x'] *= scaling*3
+            }
+            const sliderBasePos = new BABYLON.Vector3(0,0,0);
+            sliderBasePos['x'] = position['x'];
+            sliderBasePos['y'] = position['y']+sliderBaseScaling['y'];
+            sliderBasePos['z'] = position['z'];
+
+
+            const points = (orientation=='vertical')?
+            [
+                new BABYLON.Vector3(position['x']+sliderBaseScaling['x']/2,sliderBasePos['y']+sliderBaseScaling['y']/2+0.01,position['z']),
+                new BABYLON.Vector3(position['x']-sliderBaseScaling['x']/2,sliderBasePos['y']+sliderBaseScaling['y']/2+0.01,position['z']),
+            ]:[
+                new BABYLON.Vector3(position['x'],sliderBasePos['y']+sliderBaseScaling['y']/2+0.01,position['z']+sliderBaseScaling['z']/2),
+                new BABYLON.Vector3(position['x'],sliderBasePos['y']+sliderBaseScaling['y']/2+0.01,position['z']-sliderBaseScaling['z']/2),
+            ]
+
+            const midLine = BABYLON.MeshBuilder.CreateLines("midLine",{points:points});
+            midLine.color = new BABYLON.Color3(1,0,0);
             sliderBaseMat.diffuseColor = new BABYLON.Color3(0,0,0);
             sliderBase.material = sliderBaseMat;
-            sliderBase.position = position;
-            sliderBase.scaling = new BABYLON.Vector3(1,0.5,4*scaling);
+            sliderBase.position = sliderBasePos;
+            sliderBase.scaling = sliderBaseScaling;
 
 
             const sliderButton = new BABYLON.MeshBuilder.CreateBox("sliderButton",{});
             const sliderButtonMat = new BABYLON.StandardMaterial("sliderButtonMat");
-            sliderButtonMat.diffuseColor = new BABYLON.Color3(0,0,1);
-            sliderButton.material = sliderButtonMat;
-            sliderButton.scaling = new BABYLON.Vector3(1,0.2,1);
-            sliderButton.position = new BABYLON.Vector3(position['x'],position['y']+sliderBase.scaling['y']/2+sliderButton.scaling['y']/2,position['z']);
-            
-            const pointerDragBehavior = new BABYLON.PointerDragBehavior({dragAxis: new BABYLON.Vector3(0,0,1)});
-            sliderButton.addBehavior(pointerDragBehavior);
+            const sliderButtonScaling = new BABYLON.Vector3(1,0.2,1);
 
+            const maxValue = (orientation == 'vertical')? position['z']-sliderButton.scaling['z']/2+(sliderBase.scaling['z'])/2:position['x']-sliderButton.scaling['x']/2+(sliderBase.scaling['x'])/2
+            const minValue = (orientation == 'vertical')? position['z']+sliderButton.scaling['z']/2-(sliderBase.scaling['z'])/2:position['x']+sliderButton.scaling['x']/2-(sliderBase.scaling['x'])/2
+            const midValue = (orientation == 'vertical')? position['z']:position['x']
+            const interval = (maxValue+sliderButtonScaling['x']/2-midValue)/2
+            
+            if(scaling != 1){
+                const points1 = (orientation == 'vertical')?
+                [
+                new BABYLON.Vector3(position['x']+sliderBaseScaling['x']/2,sliderBasePos['y']+sliderBaseScaling['y']/2+0.01,midValue + interval),
+                new BABYLON.Vector3(position['x']-sliderBaseScaling['x']/2,sliderBasePos['y']+sliderBaseScaling['y']/2+0.01,midValue + interval),
+            ]:[
+                new BABYLON.Vector3(midValue + interval,sliderBasePos['y']+sliderBaseScaling['y']/2+0.01,position['z']+sliderBaseScaling['z']/2),
+                new BABYLON.Vector3(midValue + interval,sliderBasePos['y']+sliderBaseScaling['y']/2+0.01,position['z']-sliderBaseScaling['z']/2),
+            ];
+            
+                const points2 = (orientation == 'vertical')?
+                [
+                new BABYLON.Vector3(position['x']+sliderBaseScaling['x']/2,sliderBasePos['y']+sliderBaseScaling['y']/2+0.01,midValue - interval),
+                new BABYLON.Vector3(position['x']-sliderBaseScaling['x']/2,sliderBasePos['y']+sliderBaseScaling['y']/2+0.01,midValue - interval),
+            ]:[
+                new BABYLON.Vector3(midValue - interval,sliderBasePos['y']+sliderBaseScaling['y']/2+0.01,position['z']+sliderBaseScaling['z']/2),
+                new BABYLON.Vector3(midValue - interval,sliderBasePos['y']+sliderBaseScaling['y']/2+0.01,position['z']-sliderBaseScaling['z']/2),
+            ];
+
+            const midMaxLine = BABYLON.MeshBuilder.CreateLines("midLine",{points:points1});
+            const midMinLine = BABYLON.MeshBuilder.CreateLines("midMinLine",{points:points2})
+            midMinLine.color = new BABYLON.Color3(1,0,0);
+            midMaxLine.color = new BABYLON.Color3(1,0,0);
+            }
+
+            sliderButtonMat.diffuseColor = new BABYLON.Color3(0,0,0.7);
+            sliderButton.material = sliderButtonMat;
+            sliderButton.scaling = sliderButtonScaling;
+            sliderButton.position = new BABYLON.Vector3(position['x'],sliderBasePos['y']+sliderBase.scaling['y']/2+sliderButton.scaling['y']/2,position['z']);
+            sliderButton.actionManager = new BABYLON.ActionManager(scene);
+            sliderButton.actionManager.registerAction(
+                new BABYLON.ExecuteCodeAction(
+                    BABYLON.ActionManager.OnPointerOverTrigger,
+                    function(){
+                        sliderButtonMat.diffuseColor = new BABYLON.Color3(0,0,1);
+                    }
+                )
+            );
+            sliderButton.actionManager.registerAction(
+                new BABYLON.ExecuteCodeAction(
+                    BABYLON.ActionManager.OnPointerOutTrigger,
+                    function(){
+                        sliderButtonMat.diffuseColor = new BABYLON.Color3(0,0,0.7);
+                    }
+                ),
+                
+            );
+
+            if(orientation=='horizontal'){
+                generateBase(scaling,position,'horizontal');
+            } else {
+                generateBase(scaling,position,'vertical');
+
+            }
+            const pointerDragBehavior = (orientation == "vertical")? new BABYLON.PointerDragBehavior({dragAxis: new BABYLON.Vector3(0,0,1)}):new BABYLON.PointerDragBehavior({dragAxis: new BABYLON.Vector3(1,0,0)});
+            sliderButton.addBehavior(pointerDragBehavior);
+            
             pointerDragBehavior.onDragEndObservable.add((event)=>{
-                console.log(sliderButton.position['z']);
-                console.log(position['z']+sliderButton.scaling['z']/2-(sliderBase.scaling['z']*scaling)/2);
+                let sliderPos = (orientation == 'vertical')? Math.round((sliderButton.position['z'])*10)/10 : Math.round(sliderButton.position['x']*10)/10;
+                console.log(sliderPos)
+                // Do something if certain threshold is met
+                sliderThresholdCheck(sliderPos,scaling,maxValue,minValue, midValue,interval);
                 console.log(event);
              })
             pointerDragBehavior.validateDrag = (targetPosition)=>{
-            if(targetPosition.z < (position['z']+sliderButton.scaling['z']/2-(sliderBase.scaling['z']*scaling)/2)){
-                targetPosition.z = position['z']+sliderButton.scaling['z']/2-(sliderBase.scaling['z']*scaling)/2
+                if(orientation == 'vertical'){
+                    if(targetPosition.z < minValue){
+                        targetPosition.z = minValue
+                    }
+                    
+                    if(targetPosition.z > maxValue){
+                        return false
+                    }else{
+                        return true
+                    }
+            } else {
+                if(targetPosition.x < minValue){
+                        targetPosition.x = minValue
+                    }
+                    
+                    if(targetPosition.x > maxValue){
+                        return false
+                    }else{
+                        return true
+                    }
             }
-
-            if(targetPosition.z > position['z']-sliderButton.scaling['z']/2+(sliderBase.scaling['z']*scaling)/2){
-                return false
-            }else{
-                return true
-            }
-            
             }
         }
-        function generateBase(){
+
+        function sliderThresholdCheck(sliderPos, scaling, maxValue, minValue, midValue, interval){
+            const offSet = 0.2;
+            
+            if(sliderPos <= midValue+offSet && sliderPos >= midValue-offSet){
+                console.log('mid');
+            }
+
+            else if(sliderPos == minValue){
+                console.log('min')
+            }
+
+            else if(sliderPos == maxValue){
+                console.log('max')
+            }
+
+            else if(scaling != 1){
+                if(sliderPos <= midValue+offSet+interval && sliderPos >= midValue+interval-offSet){
+                    console.log('mid-max')
+                }
+                if(sliderPos <= midValue+offSet-interval && sliderPos >= midValue-interval-offSet){
+                    console.log('mid-min')
+                }
+            }
+
+        }
+
+        function generateBaseBig(){
             const base = new BABYLON.MeshBuilder.CreateBox("box",{width:15,depth:15});
             const points1 = [
                 new BABYLON.Vector3(-7.5,0.51,2.5),
