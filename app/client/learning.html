@@ -75,10 +75,37 @@
 
             generateBase(scaling,position,'diagonal');
             button.actionManager = new BABYLON.ActionManager(scene);
+            
+            const frameRate = 10;
+            const buttonAnimation = new BABYLON.Animation('buttonAnimation','position.y',frameRate,BABYLON.Animation.ANIMATIONTYPE_FLOAT,BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+            const keyFrames = [];
+            keyFrames.push({
+                frame:0,
+                value:button.position.y
+            });
+            keyFrames.push({
+                frame:frameRate/2,
+                value:button.position.y - button.scaling['y']/2
+            });
+            keyFrames.push({
+                frame:frameRate,
+                value:button.position.y
+            });
+            buttonAnimation.setKeys(keyFrames);
+            button.animations.push(buttonAnimation);
+            let pressable = true;
             button.actionManager.registerAction(
                 new BABYLON.ExecuteCodeAction(
                     BABYLON.ActionManager.OnPickTrigger,
-                    function () {console.log('cum');}
+                    function () {
+                        if(pressable == true){
+                            pressable = false;
+                            console.log('cum');
+                            scene.beginAnimation(button, 0, frameRate, false);
+                            scene.beginAnimation(button, frameRate, 0, false);
+                            setTimeout(function(){pressable = true},1000);
+                        }
+                    }
                 )
             );
             button.actionManager.registerAction(
@@ -128,7 +155,7 @@
                 ];
             points.push(points[0]);
             const outline = BABYLON.MeshBuilder.CreateLines("outline",{points:points});
-            outline.color = new BABYLON.Color3(1,0,0);
+            outline.color = new BABYLON.Color3(0,0,0);
         }
 
         function generateSlider(position, scaling, scene, orientation){
@@ -287,7 +314,7 @@
 
         }
 
-        function generateSequenceButton(position, scaling, scene, sequence){
+        function generateSequenceButton(position, scaling, scene){
             generateBase(scaling,position,'diagonal');
             const redButton = new BABYLON.MeshBuilder.CreateBox('redButton',{});
             const greenButton = new BABYLON.MeshBuilder.CreateBox('greenButton',{});
@@ -343,11 +370,10 @@
                 new BABYLON.ExecuteCodeAction(
                     BABYLON.ActionManager.OnPickTrigger,
                     function(){
-                        if(userSequence.includes('red') == false || result != 1){
+                        if(userSequence.includes('red') == false){
                             redButtonMat.diffuseColor = new BABYLON.Color3(1,0,0);
                             userSequence.push('red');
-                            result = checkSequenceResult(sequence, userSequence, sequenceButtonMat);
-                            if(result == -1) userSequence = [];  
+                            userSequence = submitSequenceResult(userSequence, sequenceButtonMat);    
                         }
                     }
                 )
@@ -356,11 +382,10 @@
                 new BABYLON.ExecuteCodeAction(
                     BABYLON.ActionManager.OnPickTrigger,
                     function(){
-                        if(userSequence.includes('green') == false || result != 1){
+                        if(userSequence.includes('green') == false){
                             greenButtonMat.diffuseColor = new BABYLON.Color3(0,1,0);
                             userSequence.push('green');
-                            result = checkSequenceResult(sequence, userSequence, sequenceButtonMat);
-                            if(result == -1) userSequence = [];  
+                            userSequence = submitSequenceResult(userSequence, sequenceButtonMat);    
                         }
                     }
                 )
@@ -369,11 +394,10 @@
                 new BABYLON.ExecuteCodeAction(
                     BABYLON.ActionManager.OnPickTrigger,
                     function(){
-                        if(userSequence.includes('yellow') == false || result != 1){
+                        if(userSequence.includes('yellow') == false){
                             yellowButtonMat.diffuseColor = new BABYLON.Color3(1,1,0);
                             userSequence.push('yellow');
-                            result = checkSequenceResult(sequence, userSequence, sequenceButtonMat); 
-                            if(result == -1) userSequence = [];  
+                            userSequence = submitSequenceResult(userSequence, sequenceButtonMat);    
                         }
                     }
                 )
@@ -382,11 +406,11 @@
                 new BABYLON.ExecuteCodeAction(
                     BABYLON.ActionManager.OnPickTrigger,
                     function(){
-                        if(userSequence.includes('blue') == false || result != 1){
+                        if(userSequence.includes('blue') == false){
                             blueButtonMat.diffuseColor = new BABYLON.Color3(0,0,1);
                             userSequence.push('blue');
-                            result = checkSequenceResult(sequence, userSequence, sequenceButtonMat);  
-                            if(result == -1) {userSequence = [];}  
+                            userSequence = submitSequenceResult(userSequence, sequenceButtonMat);
+                            
                         }
                     }
                 )
@@ -394,23 +418,17 @@
                     
         }
 
-        function checkSequenceResult(sequence, userSequence, sequenceButtonMat){
+        function submitSequenceResult(userSequence, sequenceButtonMat){
             if(userSequence.length == 4){
-                for(let i = 0; i < userSequence.length; i++){
-                    if(sequence[i] != userSequence[i]) {
-                        console.log('Incorrect Sequence');
-                        sequenceButtonMat[0].diffuseColor = new BABYLON.Color3(0.5,0,0);
-                        sequenceButtonMat[1].diffuseColor = new BABYLON.Color3(0,0.5,0);
-                        sequenceButtonMat[2].diffuseColor = new BABYLON.Color3(0.5,0.5,0);
-                        sequenceButtonMat[3].diffuseColor = new BABYLON.Color3(0,0,0.5);
-                        console.log(sequence);
-                        return -1;
-                    }
-                }
-                console.log('Correct Sequence');
-                return 1;
-            } else return 0;
+                sequenceButtonMat[0].diffuseColor = new BABYLON.Color3(0.5,0,0);
+                sequenceButtonMat[1].diffuseColor = new BABYLON.Color3(0,0.5,0);
+                sequenceButtonMat[2].diffuseColor = new BABYLON.Color3(0.5,0.5,0);
+                sequenceButtonMat[3].diffuseColor = new BABYLON.Color3(0,0,0.5);
             
+                console.log(userSequence);
+                userSequence = [];
+                return userSequence;
+            } else {return userSequence;}
         }
         function generateBaseBig(){
             const base = new BABYLON.MeshBuilder.CreateBox("box",{width:15,depth:15});
