@@ -43,16 +43,22 @@
             const buttonScale = 1;
             const sliderPos = new BABYLON.Vector3(5,0,0);
             const sliderScale = 3;
-            const sequenceButtonPos = new BABYLON.Vector3(-2.5,0,-2.5);
-            const sequenceButtonScale = 2;
-            const sequence = ['red','blue','yellow','green'];
-            generateSequenceButton(sequenceButtonPos,sequenceButtonScale,scene,sequence);
-            generateButton(buttonPos,buttonScale,scene);
-            generateSlider(sliderPos,sliderScale,scene,'vertical');
+            const sequenceButtonPos = new BABYLON.Vector3(0,0,0);
+            const sequenceButtonScale = 1;
+            const leverPos = new BABYLON.Vector3(-5,0,5);
+            const leverScale = 1;
+            const rotatingDialPos = new BABYLON.Vector3(-5,0,0);
+            const rotatingDialScale = 1;
             const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 15, new BABYLON.Vector3(0, 0, 0));
             camera.attachControl(canvas,true);
             camera.setPosition(new BABYLON.Vector3(0, 20, 0));
             const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0));
+            generateRotatingDial(rotatingDialPos,rotatingDialScale,scene,camera);
+            generateLever(leverPos,leverScale,scene,'diagonal');
+            generateSequenceButton(sequenceButtonPos,sequenceButtonScale,scene);
+            generateButton(buttonPos,buttonScale,scene);
+            generateSlider(sliderPos,sliderScale,scene,'vertical');
+            
             
             return scene;
         };
@@ -65,66 +71,40 @@
             const buttonScaling = new BABYLON.Vector3(3*scaling,0.5,3*scaling)
             const buttonPos = new BABYLON.Vector3(0,0,0);
             buttonPos['x'] = position['x'];
-            buttonPos['y'] = position['y']+buttonScaling['y'];
+            buttonPos['y'] = buttonScaling['y'];
             buttonPos['z'] = position['z'];
             buttonPos['z'] += 0.5*scaling;
-            buttonMat.diffuseColor = new BABYLON.Color3(0,0,0.7);
+            buttonMat.diffuseColor = new BABYLON.Color3(0,0,0.6);
             button.material = buttonMat;
             button.position = buttonPos;
             button.scaling = buttonScaling;
 
             generateBase(scaling,position,'diagonal');
             button.actionManager = new BABYLON.ActionManager(scene);
-            
-            const frameRate = 10;
-            const buttonAnimation = new BABYLON.Animation('buttonAnimation','position.y',frameRate,BABYLON.Animation.ANIMATIONTYPE_FLOAT,BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
-            const keyFrames = [];
-            keyFrames.push({
-                frame:0,
-                value:button.position.y
-            });
-            keyFrames.push({
-                frame:frameRate/2,
-                value:button.position.y - button.scaling['y']/2
-            });
-            keyFrames.push({
-                frame:frameRate,
-                value:button.position.y
-            });
-            buttonAnimation.setKeys(keyFrames);
-            button.animations.push(buttonAnimation);
-            let pressable = true;
+            let downFlag = false;
             button.actionManager.registerAction(
                 new BABYLON.ExecuteCodeAction(
                     BABYLON.ActionManager.OnPickTrigger,
                     function () {
-                        if(pressable == true){
-                            pressable = false;
-                            console.log('cum');
-                            scene.beginAnimation(button, 0, frameRate, false);
-                            scene.beginAnimation(button, frameRate, 0, false);
-                            setTimeout(function(){pressable = true},1000);
-                        }
+                        console.log('cum');
+                        scene.registerBeforeRender(buttonCallback);
                     }
                 )
             );
-            button.actionManager.registerAction(
-                new BABYLON.ExecuteCodeAction(
-                    BABYLON.ActionManager.OnPointerOverTrigger,
-                    function(){
-                        buttonMat.diffuseColor = new BABYLON.Color3(0,0,1);
-                    }
-                )
-            );
-            button.actionManager.registerAction(
-                new BABYLON.ExecuteCodeAction(
-                    BABYLON.ActionManager.OnPointerOutTrigger,
-                    function(){
-                        buttonMat.diffuseColor = new BABYLON.Color3(0,0,0.7);
-                    }
-                ),
-                
-            );
+            
+            function buttonCallback(){
+                if(downFlag == false){
+                    button.position.y -= 0.01;
+                    if(button.position.y < 0.2){downFlag = true}
+                }
+                else{
+                    button.position.y += 0.01;
+                    if(button.position.y > 0.4){
+                        downFlag = false;
+                        scene.unregisterBeforeRender(buttonCallback);}
+                }
+            }
+            onHover(button,buttonMat,'blue');
 
         }
 
@@ -156,6 +136,7 @@
             points.push(points[0]);
             const outline = BABYLON.MeshBuilder.CreateLines("outline",{points:points});
             outline.color = new BABYLON.Color3(0,0,0);
+            return baseScaling;
         }
 
         function generateSlider(position, scaling, scene, orientation){
@@ -224,28 +205,12 @@
             midMaxLine.color = new BABYLON.Color3(1,0,0);
             }
 
-            sliderButtonMat.diffuseColor = new BABYLON.Color3(0,0,0.7);
+            sliderButtonMat.diffuseColor = new BABYLON.Color3(0,0,0.6);
             sliderButton.material = sliderButtonMat;
             sliderButton.scaling = sliderButtonScaling;
             sliderButton.position = new BABYLON.Vector3(position['x'],sliderBasePos['y']+sliderBase.scaling['y']/2+sliderButton.scaling['y']/2,position['z']);
             sliderButton.actionManager = new BABYLON.ActionManager(scene);
-            sliderButton.actionManager.registerAction(
-                new BABYLON.ExecuteCodeAction(
-                    BABYLON.ActionManager.OnPointerOverTrigger,
-                    function(){
-                        sliderButtonMat.diffuseColor = new BABYLON.Color3(0,0,1);
-                    }
-                )
-            );
-            sliderButton.actionManager.registerAction(
-                new BABYLON.ExecuteCodeAction(
-                    BABYLON.ActionManager.OnPointerOutTrigger,
-                    function(){
-                        sliderButtonMat.diffuseColor = new BABYLON.Color3(0,0,0.7);
-                    }
-                ),
-                
-            );
+            onHover(sliderButton,sliderButtonMat,'blue')
 
             if(orientation=='horizontal'){
                 generateBase(scaling,position,'horizontal');
@@ -415,7 +380,6 @@
                     }
                 )
             );
-                    
         }
 
         function submitSequenceResult(userSequence, sequenceButtonMat){
@@ -430,6 +394,156 @@
                 return userSequence;
             } else {return userSequence;}
         }
+        
+        function generateLever(position, scaling, scene, orientation){
+            const baseScaling = generateBase(scaling,position,orientation);
+            const lever = new BABYLON.MeshBuilder.CreateBox('lever',{});
+            const leverMat = new BABYLON.StandardMaterial('leverMat');
+            const leverPos = new BABYLON.Vector3(0,0,0);
+            const leverScaling = new BABYLON.Vector3(3,0.4,1);
+            if(orientation == 'diagonal'){
+                leverScaling['x'] *= scaling;
+                leverScaling['z'] *= scaling;
+            } else if(orientation == 'vertical'){
+                leverScaling['z'] *= scaling;
+            } else {leverScaling['x'] *= scaling}
+            
+            let leverState = 0;
+            leverPos['x'] = position['x']
+            leverPos['y'] = leverScaling['y']
+            leverPos['z'] = position['z']
+            leverMat.diffuseColor = new BABYLON.Color3(0,0,0.6);
+            lever.material = leverMat;
+            lever.position = leverPos;
+            lever.scaling = leverScaling;
+            lever.rotation.z = Math.PI*(30/180);
+            const leverStatus = new BABYLON.MeshBuilder.CreateSphere("sphere", {slice: 0.5, sideOrientation: BABYLON.Mesh.DOUBLESIDE});
+            const leverStatusMat = new BABYLON.StandardMaterial('leverStatusMat');
+            leverStatusMat.diffuseColor = new BABYLON.Color3(1,0,0);
+            leverStatus.material = leverStatusMat;
+            const leverStatusPos = new BABYLON.Vector3(0,0,0);
+            leverStatusPos['x'] = position['x'] - baseScaling['x']/2 + 0.5*scaling
+            leverStatusPos['y'] = lever.scaling['y']-0.2
+            leverStatusPos['z'] = position['z'] + baseScaling['z']/2 - 0.5*scaling
+            leverStatus.position = leverStatusPos;
+
+            lever.actionManager = new BABYLON.ActionManager(scene);
+            lever.actionManager.registerAction(
+                new BABYLON.ExecuteCodeAction(
+                    BABYLON.ActionManager.OnPickTrigger,
+                    function () {
+                        if(leverState == 0){
+                            leverState = 1;
+                            leverStatusMat.diffuseColor = new BABYLON.Color3(0,1,0);
+                            console.log('yummy');
+                            scene.registerBeforeRender(leverCallback);
+                        }
+                        else {
+                            leverState = 0;
+                            leverStatusMat.diffuseColor = new BABYLON.Color3(1,0,0);
+                            console.log('tummy');
+                            scene.registerBeforeRender(leverCallback);
+                        }
+                    }
+                )
+            );
+            function leverCallback(){
+                if(leverState == 1){
+                    lever.rotation.z += Math.PI*(10/180);
+                    if(lever.rotation.z > Math.PI*(150/180)){
+                        scene.unregisterBeforeRender(leverCallback);
+                    }
+                } else{
+                    lever.rotation.z -= Math.PI*(10/180);;
+                    if(lever.rotation.z < Math.PI*(30/180)){
+                        scene.unregisterBeforeRender(leverCallback);
+                    }
+                }
+            }
+            onHover(lever,leverMat,'blue');
+
+
+
+
+        }
+        
+        function generateRotatingDial(position, scaling, scene,camera){
+            generateBase(scaling,position,'diagonal');
+            const dialBase = new BABYLON.MeshBuilder.CreateCylinder("dialBase",{})
+            const dialPointer = new BABYLON.MeshBuilder.CreateBox("dialPointer",{});
+            const dialPointerScaling = new BABYLON.Vector3(2.3*scaling,0.5,0.4*scaling);
+            const dialBaseScaling = new BABYLON.Vector3(2.3*scaling,0.4,2.3*scaling);
+            const dialPointerPos = new BABYLON.Vector3(0,0,0);
+            const dialBasePos = new BABYLON.Vector3(0,0,0);
+            const dialBaseMat = new BABYLON.StandardMaterial('dialBaseMat');
+            const dialPointerMat = new BABYLON.StandardMaterial('dialPointerMat');
+
+            dialBaseMat.diffuseColor = new BABYLON.Color3(0,0,0);
+            dialPointerMat.diffuseColor = new BABYLON.Color3(0,0,0.6);
+            dialBase.material = dialBaseMat;
+            dialPointer.material = dialPointerMat;
+
+            dialBasePos['x'] = position['x'];
+            dialBasePos['y'] = dialBaseScaling['y'];
+            dialBasePos['z'] = position['z'] + 0.5*scaling;
+            dialPointerPos['x'] = position['x'];
+            dialPointerPos['y'] = dialPointerScaling['y'] + dialBasePos['y']/2;
+            dialPointerPos['z'] = position['z']+ 0.5*scaling;
+            dialPointer.rotation.z = Math.PI*(10/180);
+
+            dialPointer.position = dialPointerPos;
+            dialBase.position = dialBasePos;
+            dialPointer.scaling = dialPointerScaling;
+            dialBase.scaling = dialBaseScaling;
+            
+            
+        }
+
+        function onHover(mesh, material, color){
+            mesh.actionManager.registerAction(
+                new BABYLON.ExecuteCodeAction(
+                    BABYLON.ActionManager.OnPointerOverTrigger,
+                    function(){
+                        if(color == 'blue'){
+                            material.diffuseColor = new BABYLON.Color3(0,0,1);
+                        }
+                        else if(color == 'red'){
+                            material.diffuseColor = new BABYLON.Color3(1,0,0);
+                        }
+                        else if(color == 'green'){
+                            material.diffuseColor = new BABYLON.Color3(0,1,0);
+                        }
+                        else if(color == 'yellow'){
+                            material.diffuseColor = new BABYLON.Color3(1,1,0);
+                        }
+                    }
+                )
+            );
+            mesh.actionManager.registerAction(
+                new BABYLON.ExecuteCodeAction(
+                    BABYLON.ActionManager.OnPointerOutTrigger,
+                    function(){
+                        const curColor = material.diffuseColor;
+                        if(color == 'blue'){
+                            material.diffuseColor = new BABYLON.Color3(0,0,0.6);
+                        }
+                        else if(color == 'red'){
+                            material.diffuseColor = new BABYLON.Color3(0.6,0,0);
+                        }
+                        else if(color == 'green'){
+                            material.diffuseColor = new BABYLON.Color3(0,0.6,0);
+                        }
+                        else if(color == 'yellow'){
+                            material.diffuseColor = new BABYLON.Color3(0.6,0.6,0);
+                        }
+                    }
+                ),
+                
+            );
+        }
+        
+        
+
         function generateBaseBig(){
             const base = new BABYLON.MeshBuilder.CreateBox("box",{width:15,depth:15});
             const points1 = [
