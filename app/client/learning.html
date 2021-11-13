@@ -471,7 +471,7 @@
             generateBase(scaling,position,'diagonal');
             const dialBase = new BABYLON.MeshBuilder.CreateCylinder("dialBase",{})
             const dialPointer = new BABYLON.MeshBuilder.CreateBox("dialPointer",{});
-            const dialPointerScaling = new BABYLON.Vector3(2.3*scaling,0.5,0.4*scaling);
+            const dialPointerScaling = new BABYLON.Vector3(2.3*scaling,0.5,0.7*scaling);
             const dialBaseScaling = new BABYLON.Vector3(2.3*scaling,0.4,2.3*scaling);
             const dialPointerPos = new BABYLON.Vector3(0,0,0);
             const dialBasePos = new BABYLON.Vector3(0,0,0);
@@ -489,16 +489,134 @@
             dialPointerPos['x'] = position['x'];
             dialPointerPos['y'] = dialPointerScaling['y'] + dialBasePos['y']/2;
             dialPointerPos['z'] = position['z']+ 0.5*scaling;
-            dialPointer.rotation.z = Math.PI*(10/180);
 
             dialPointer.position = dialPointerPos;
             dialBase.position = dialBasePos;
             dialPointer.scaling = dialPointerScaling;
             dialBase.scaling = dialBaseScaling;
+
+            dialPointer.actionManager = new BABYLON.ActionManager(scene);
+            dialBase.actionManager = new BABYLON.ActionManager(scene);
+            let currentPosition = {x: 0,y: 0 };
+            let currentRotation = {x: 0,y: 0 };
+            let clicked = false;
+            let over = false;
+            dialPointer.actionManager.registerAction(
+                new BABYLON.ExecuteCodeAction(
+                    BABYLON.ActionManager.OnPickDownTrigger,
+                    function() {
+                        over = true;
+                        camera.detachControl(canvas,false)
+                    }
+                )
+            )
+            dialPointer.actionManager.registerAction(
+                new BABYLON.ExecuteCodeAction(
+                    BABYLON.ActionManager.OnPickOutTrigger,
+                    function() {
+                        over = false;
+                        console.log((180/Math.PI)*dialPointer.rotation.y)
+                        rotatingDialThresholdCheck(dialPointer.rotation.y);
+                        camera.attachControl(canvas,true)
+                    }
+                )
+            )
+
+            dialBase.actionManager.registerAction(
+                new BABYLON.ExecuteCodeAction(
+                    BABYLON.ActionManager.OnPickDownTrigger,
+                    function() {
+                        over = true;
+                        camera.detachControl(canvas,false)
+
+                    }
+                )
+            )
+            dialBase.actionManager.registerAction(
+                new BABYLON.ExecuteCodeAction(
+                    BABYLON.ActionManager.OnPickOutTrigger,
+                    function() {
+                        over = false;
+                        console.log((180/Math.PI)*dialPointer.rotation.y)
+                        rotatingDialThresholdCheck(dialPointer.rotation.y);
+                        camera.attachControl(canvas,false)
+                    }
+                )
+            )
+
+            dialPointer.actionManager.registerAction(
+                new BABYLON.ExecuteCodeAction(
+                    BABYLON.ActionManager.OnPickUpTrigger,
+                    function() {
+                        over = false;
+                        console.log((180/Math.PI)*dialPointer.rotation.y)
+                        rotatingDialThresholdCheck(dialPointer.rotation.y);
+                        camera.attachControl(canvas,false)
+                    }
+                )
+            )
+
+            dialBase.actionManager.registerAction(
+                new BABYLON.ExecuteCodeAction(
+                    BABYLON.ActionManager.OnPickUpTrigger,
+                    function() {
+                        over = false;
+                        console.log((180/Math.PI)*dialPointer.rotation.y)
+                        rotatingDialThresholdCheck(dialPointer.rotation.y);
+                        camera.attachControl(canvas,false)
+                    }
+                )
+            )
+
+            canvas.addEventListener("pointerdown", function (evt) {
+                currentPosition.x = evt.clientX;
+                currentPosition.y = evt.clientY;
+                currentRotation.x = dialPointer.rotation.x;
+                currentRotation.y = dialPointer.rotation.y;
+                clicked = true;
+            });
             
+            canvas.addEventListener("pointermove", function (evt) {
+                if (!clicked) {
+                    return;
+                }
+                if(over == true){
+                    dialPointer.rotation.y = currentRotation.y + (evt.clientX - currentPosition.x) / 40.0;
+                    if(dialPointer.rotation.y < 0){dialPointer.rotation.y = 0};
+                    if(dialPointer.rotation.y > Math.PI){dialPointer.rotation.y = Math.PI}
+                }
+            });
+            
+            canvas.addEventListener("pointerup", function (evt) {
+                clicked = false;
+            });
+           
+            onHover(dialPointer,dialPointerMat,'blue');
+                
             
         }
 
+        function rotatingDialThresholdCheck(rotation){
+            const offset = Math.PI*(15/180);
+            const min = -0.1;
+            const max = Math.PI+0.1;
+            const minMid = Math.PI*(60/180);
+            const maxMid = Math.PI*(120/180);
+            if(rotation > min && rotation < offset){
+                console.log('min')
+            }
+            else if(rotation > minMid-offset && rotation < minMid+offset){
+                console.log('mid-min')
+            }
+            
+            else if(rotation > maxMid-offset && rotation < maxMid+offset){
+                console.log('mid-max')
+            }
+            
+            else if(rotation > max-offset && rotation < max){
+                console.log('max')
+            }
+        }
         function onHover(mesh, material, color){
             mesh.actionManager.registerAction(
                 new BABYLON.ExecuteCodeAction(
