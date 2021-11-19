@@ -21,9 +21,20 @@
             }
         </style>
 
-        <script src="https://cdn.babylonjs.com/babylon.js"></script>
-        <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
-        <script src="https://code.jquery.com/pep/0.4.3/pep.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.2/dat.gui.min.js"></script>
+        <script src="https://preview.babylonjs.com/ammo.js"></script>
+        <script src="https://preview.babylonjs.com/cannon.js"></script>
+        <script src="https://preview.babylonjs.com/Oimo.js"></script>
+        <script src="https://preview.babylonjs.com/earcut.min.js"></script>
+        <script src="https://preview.babylonjs.com/babylon.js"></script>
+        <script src="https://preview.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+        <script src="https://preview.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+        <script src="https://preview.babylonjs.com/postProcessesLibrary/babylonjs.postProcess.min.js"></script>
+        <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.js"></script>
+        <script src="https://preview.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
+        <script src="https://preview.babylonjs.com/gui/babylon.gui.min.js"></script>
+        <script src="https://preview.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
+
     </head>
 
    <body>
@@ -51,10 +62,13 @@
             const rotatingDialScale = 1;
             const joyStickPos = new BABYLON.Vector3(0,0,-5)
             const joyStickScale = 1;
+            const keyPadPos = new BABYLON.Vector3(-5, 0, -5);
+            const keyPadScale = 1;
             const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 15, new BABYLON.Vector3(0, 0, 0));
             camera.attachControl(canvas,true);
             camera.setPosition(new BABYLON.Vector3(0, 20, 0));
             const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0));
+            generateKeyPad(keyPadPos,keyPadScale,scene);
             generateJoyStick(joyStickPos,joyStickScale,scene);
             generateRotatingDial(rotatingDialPos,rotatingDialScale,scene,camera);
             generateLever(leverPos,leverScale,scene,'diagonal');
@@ -69,18 +83,13 @@
         const scene = createScene(); //Call the createScene function
         
         function generateButton(position, scaling, scene){
-            const baseScaling = generateBase(scaling,position,'diagonal');
+            const base = generateBase(scaling,position,'diagonal');
             const button = new BABYLON.MeshBuilder.CreateCylinder("button",{});
             const buttonMat = new BABYLON.StandardMaterial("buttonMat");
             const buttonScaling = new BABYLON.Vector3(3*scaling,0.5,3*scaling)
-            const buttonPos = new BABYLON.Vector3(0,0,0);
-            buttonPos['x'] = position['x'];
-            buttonPos['y'] = baseScaling['y']/2;
-            buttonPos['z'] = position['z'];
-            buttonPos['z'] += 0.5*scaling;
             buttonMat.diffuseColor = new BABYLON.Color3(0,0,0.6);
             button.material = buttonMat;
-            button.position = buttonPos;
+            button.position = new BABYLON.Vector3(position['x'],base.scaling.y/2,position['z']+0.5*scaling);
             button.scaling = buttonScaling;
 
             button.actionManager = new BABYLON.ActionManager(scene);
@@ -139,11 +148,11 @@
             points.push(points[0]);
             const outline = BABYLON.MeshBuilder.CreateLines("outline",{points:points});
             outline.color = new BABYLON.Color3(0,0,0);
-            return baseScaling;
+            return base;
         }
 
         function generateSlider(position, scaling, scene, orientation){
-            const baseScaling = (orientation == 'horizontal')? generateBase(scaling,position,'horizontal'):generateBase(scaling,position,'vertical');
+            const base = (orientation == 'horizontal')? generateBase(scaling,position,'horizontal'):generateBase(scaling,position,'vertical');
             const sliderBase = new BABYLON.MeshBuilder.CreateBox("sliderBase",{});
             const sliderBaseMat = new BABYLON.StandardMaterial("sliderBaseMat");
             const sliderBaseScaling = new BABYLON.Vector3(1,0.5,1);
@@ -152,16 +161,11 @@
             } else {
                 sliderBaseScaling['x'] *= scaling*3
             }
-            const sliderBasePos = new BABYLON.Vector3(0,0,0);
-            sliderBasePos['x'] = position['x'];
-            sliderBasePos['y'] = baseScaling['y']/2;
-            sliderBasePos['z'] = position['z'];
-
 
             const points = (orientation=='vertical')?
             [
-                new BABYLON.Vector3(position['x']+sliderBaseScaling['x']/2,sliderBasePos['y']+sliderBaseScaling['y']/2+0.01,position['z']),
-                new BABYLON.Vector3(position['x']-sliderBaseScaling['x']/2,sliderBasePos['y']+sliderBaseScaling['y']/2+0.01,position['z']),
+                new BABYLON.Vector3(position['x']+sliderBaseScaling['x']/2,sliderBase.position.y+sliderBaseScaling['y']/2+0.01,position['z']),
+                new BABYLON.Vector3(position['x']-sliderBaseScaling['x']/2,sliderBase.position.y+sliderBaseScaling['y']/2+0.01,position['z']),
             ]:[
                 new BABYLON.Vector3(position['x'],sliderBasePos['y']+sliderBaseScaling['y']/2+0.01,position['z']+sliderBaseScaling['z']/2),
                 new BABYLON.Vector3(position['x'],sliderBasePos['y']+sliderBaseScaling['y']/2+0.01,position['z']-sliderBaseScaling['z']/2),
@@ -171,7 +175,7 @@
             midLine.color = new BABYLON.Color3(1,0,0);
             sliderBaseMat.diffuseColor = new BABYLON.Color3(0,0,0);
             sliderBase.material = sliderBaseMat;
-            sliderBase.position = sliderBasePos;
+            sliderBase.position = new BABYLON.Vector3(position['x'],base.scaling.y/2,position['z']);
             sliderBase.scaling = sliderBaseScaling;
 
 
@@ -187,20 +191,20 @@
             if(scaling != 1){
                 const points1 = (orientation == 'vertical')?
                 [
-                new BABYLON.Vector3(position['x']+sliderBaseScaling['x']/2,sliderBasePos['y']+sliderBaseScaling['y']/2+0.01,midValue + interval),
-                new BABYLON.Vector3(position['x']-sliderBaseScaling['x']/2,sliderBasePos['y']+sliderBaseScaling['y']/2+0.01,midValue + interval),
+                new BABYLON.Vector3(position['x']+sliderBaseScaling['x']/2,sliderBase.position.y+sliderBaseScaling['y']/2+0.01,midValue + interval),
+                new BABYLON.Vector3(position['x']-sliderBaseScaling['x']/2,sliderBase.position.y+sliderBaseScaling['y']/2+0.01,midValue + interval),
             ]:[
-                new BABYLON.Vector3(midValue + interval,sliderBasePos['y']+sliderBaseScaling['y']/2+0.01,position['z']+sliderBaseScaling['z']/2),
-                new BABYLON.Vector3(midValue + interval,sliderBasePos['y']+sliderBaseScaling['y']/2+0.01,position['z']-sliderBaseScaling['z']/2),
+                new BABYLON.Vector3(midValue + interval,sliderBase.position.y+sliderBaseScaling['y']/2+0.01,position['z']+sliderBaseScaling['z']/2),
+                new BABYLON.Vector3(midValue + interval,sliderBase.position.y+sliderBaseScaling['y']/2+0.01,position['z']-sliderBaseScaling['z']/2),
             ];
             
                 const points2 = (orientation == 'vertical')?
                 [
-                new BABYLON.Vector3(position['x']+sliderBaseScaling['x']/2,sliderBasePos['y']+sliderBaseScaling['y']/2+0.01,midValue - interval),
-                new BABYLON.Vector3(position['x']-sliderBaseScaling['x']/2,sliderBasePos['y']+sliderBaseScaling['y']/2+0.01,midValue - interval),
+                new BABYLON.Vector3(position['x']+sliderBaseScaling['x']/2,sliderBase.position.y+sliderBaseScaling['y']/2+0.01,midValue - interval),
+                new BABYLON.Vector3(position['x']-sliderBaseScaling['x']/2,sliderBase.position.y+sliderBaseScaling['y']/2+0.01,midValue - interval),
             ]:[
-                new BABYLON.Vector3(midValue - interval,sliderBasePos['y']+sliderBaseScaling['y']/2+0.01,position['z']+sliderBaseScaling['z']/2),
-                new BABYLON.Vector3(midValue - interval,sliderBasePos['y']+sliderBaseScaling['y']/2+0.01,position['z']-sliderBaseScaling['z']/2),
+                new BABYLON.Vector3(midValue - interval,sliderBase.position.y+sliderBaseScaling['y']/2+0.01,position['z']+sliderBaseScaling['z']/2),
+                new BABYLON.Vector3(midValue - interval,sliderBase.position.y+sliderBaseScaling['y']/2+0.01,position['z']-sliderBaseScaling['z']/2),
             ];
 
             const midMaxLine = BABYLON.MeshBuilder.CreateLines("midLine",{points:points1});
@@ -212,7 +216,7 @@
             sliderButtonMat.diffuseColor = new BABYLON.Color3(0,0,0.6);
             sliderButton.material = sliderButtonMat;
             sliderButton.scaling = sliderButtonScaling;
-            sliderButton.position = new BABYLON.Vector3(position['x'],sliderBasePos['y']+sliderBase.scaling['y']/2+sliderButton.scaling['y']/2,position['z']);
+            sliderButton.position = new BABYLON.Vector3(position['x'],sliderBase.position.y+sliderBase.scaling['y']/2+sliderButton.scaling['y']/2,position['z']);
             sliderButton.actionManager = new BABYLON.ActionManager(scene);
             onHover(sliderButton,sliderButtonMat,'blue')
 
@@ -221,7 +225,7 @@
            
             pointerDragBehavior.onDragEndObservable.add((event)=>{
                 let sliderPos = (orientation == 'vertical')? Math.round((sliderButton.position['z'])*10)/10 : Math.round(sliderButton.position['x']*10)/10;
-                console.log(sliderPos)
+                //console.log(sliderPos)
                 sliderThresholdCheck(sliderPos,scaling,maxValue,minValue, midValue,interval);
                 //console.log(event);
              })
@@ -277,16 +281,12 @@
         }
 
         function generateSequenceButton(position, scaling, scene){
-            const baseScaling = generateBase(scaling,position,'diagonal');
+            const base = generateBase(scaling,position,'diagonal');
             const redButton = new BABYLON.MeshBuilder.CreateBox('redButton',{});
             const greenButton = new BABYLON.MeshBuilder.CreateBox('greenButton',{});
             const yellowButton = new BABYLON.MeshBuilder.CreateBox('yellowButton',{});
             const blueButton = new BABYLON.MeshBuilder.CreateBox('blueButton',{});
-            let sequenceButton = [];
-            sequenceButton.push(redButton);
-            sequenceButton.push(greenButton);
-            sequenceButton.push(yellowButton);
-            sequenceButton.push(blueButton);
+            const sequenceButton = [redButton,greenButton,yellowButton,blueButton];
             const redButtonMat = new BABYLON.StandardMaterial("redButtonMat");
             const greenButtonMat = new BABYLON.StandardMaterial("greenButtonMat");
             const yellowButtonMat = new BABYLON.StandardMaterial("yellowButtonMat");
@@ -295,87 +295,54 @@
             greenButtonMat.diffuseColor = new BABYLON.Color3(0,0.5,0);
             yellowButtonMat.diffuseColor = new BABYLON.Color3(0.5,0.5,0);
             blueButtonMat.diffuseColor = new BABYLON.Color3(0,0,0.5);
-            let sequenceButtonMat = [];
-            sequenceButtonMat.push(redButtonMat);
-            sequenceButtonMat.push(greenButtonMat);
-            sequenceButtonMat.push(yellowButtonMat);
-            sequenceButtonMat.push(blueButtonMat);
-            
-            for(let i = 0; i < sequenceButton.length; i++){
-                sequenceButton[i].material = sequenceButtonMat[i];
-            }
-            
-            
+            const sequenceButtonMat = [redButtonMat,greenButtonMat,yellowButtonMat,blueButtonMat]
             const sequenceButtonScaling = new BABYLON.Vector3(1.5*scaling,0.5,1.5*scaling);
-
-            for(let i = 0; i < sequenceButton.length; i++){
-                sequenceButton[i].scaling = sequenceButtonScaling;
-            }
             
             let sequenceButtonPos = [];
-            sequenceButtonPos.push(new BABYLON.Vector3(position['x']+sequenceButtonScaling['x']/2,baseScaling['y']/2,position['z']-sequenceButtonScaling['z']/2));
-            sequenceButtonPos.push(new BABYLON.Vector3(position['x']+sequenceButtonScaling['x']/2,baseScaling['y']/2,position['z']+sequenceButtonScaling['z']/2));
-            sequenceButtonPos.push(new BABYLON.Vector3(position['x']-sequenceButtonScaling['x']/2,baseScaling['y']/2,position['z']+sequenceButtonScaling['z']/2));
-            sequenceButtonPos.push(new BABYLON.Vector3(position['x']-sequenceButtonScaling['x']/2,baseScaling['y']/2,position['z']-sequenceButtonScaling['z']/2));
+            sequenceButtonPos.push(new BABYLON.Vector3(position['x']+sequenceButtonScaling['x']/2,base.scaling.y/2,position['z']-sequenceButtonScaling['z']/2));
+            sequenceButtonPos.push(new BABYLON.Vector3(position['x']+sequenceButtonScaling['x']/2,base.scaling.y/2,position['z']+sequenceButtonScaling['z']/2));
+            sequenceButtonPos.push(new BABYLON.Vector3(position['x']-sequenceButtonScaling['x']/2,base.scaling.y/2,position['z']+sequenceButtonScaling['z']/2));
+            sequenceButtonPos.push(new BABYLON.Vector3(position['x']-sequenceButtonScaling['x']/2,base.scaling.y/2,position['z']-sequenceButtonScaling['z']/2));
             
             for(let i = 0; i < sequenceButton.length;i++){
                 let randomPos = sequenceButtonPos[Math.floor(Math.random() * sequenceButtonPos.length)];
                 sequenceButton[i].position = randomPos;
                 sequenceButtonPos = sequenceButtonPos.filter(function(e){return e != randomPos});
                 sequenceButton[i].actionManager = new BABYLON.ActionManager(scene);
+                sequenceButton[i].material = sequenceButtonMat[i];
+                sequenceButton[i].scaling = sequenceButtonScaling;
             }
             
             let userSequence = [];
             
-            redButton.actionManager.registerAction(
-                new BABYLON.ExecuteCodeAction(
-                    BABYLON.ActionManager.OnPickTrigger,
-                    function(){
-                        if(userSequence.includes('red') == false){
-                            redButtonMat.diffuseColor = new BABYLON.Color3(1,0,0);
-                            userSequence.push('red');
-                            userSequence = submitSequenceResult(userSequence, sequenceButtonMat);    
+            function initButtonAction(button, buttonmat, color){
+                let newColor = new BABYLON.Color3(0,0,0);
+                if(color == 'red'){
+                    newColor = new BABYLON.Color3(1,0,0);
+                } else if(color == 'blue'){
+                    newColor = new BABYLON.Color3(0,0,1);
+                } else if(color == 'green'){
+                    newColor = new BABYLON.Color3(0,1,0);
+                } else{newColor = new BABYLON.Color3(1,1,0);}
+
+                button.actionManager.registerAction(
+                    new BABYLON.ExecuteCodeAction(
+                        BABYLON.ActionManager.OnPickTrigger,
+                        function(){
+                            if(userSequence.includes(color) == false){
+                                buttonmat.diffuseColor = newColor;
+                                userSequence.push(color);
+                                userSequence = submitSequenceResult(userSequence, sequenceButtonMat);
+                            }
                         }
-                    }
+                    )
                 )
-            );
-            greenButton.actionManager.registerAction(
-                new BABYLON.ExecuteCodeAction(
-                    BABYLON.ActionManager.OnPickTrigger,
-                    function(){
-                        if(userSequence.includes('green') == false){
-                            greenButtonMat.diffuseColor = new BABYLON.Color3(0,1,0);
-                            userSequence.push('green');
-                            userSequence = submitSequenceResult(userSequence, sequenceButtonMat);    
-                        }
-                    }
-                )
-            );
-            yellowButton.actionManager.registerAction(
-                new BABYLON.ExecuteCodeAction(
-                    BABYLON.ActionManager.OnPickTrigger,
-                    function(){
-                        if(userSequence.includes('yellow') == false){
-                            yellowButtonMat.diffuseColor = new BABYLON.Color3(1,1,0);
-                            userSequence.push('yellow');
-                            userSequence = submitSequenceResult(userSequence, sequenceButtonMat);    
-                        }
-                    }
-                )
-            );
-            blueButton.actionManager.registerAction(
-                new BABYLON.ExecuteCodeAction(
-                    BABYLON.ActionManager.OnPickTrigger,
-                    function(){
-                        if(userSequence.includes('blue') == false){
-                            blueButtonMat.diffuseColor = new BABYLON.Color3(0,0,1);
-                            userSequence.push('blue');
-                            userSequence = submitSequenceResult(userSequence, sequenceButtonMat);
-                            
-                        }
-                    }
-                )
-            );
+            }
+
+            initButtonAction(redButton,redButtonMat,'red');
+            initButtonAction(blueButton,blueButtonMat,'blue');
+            initButtonAction(yellowButton,yellowButtonMat,'yellow');
+            initButtonAction(greenButton,greenButtonMat,'green');
         }
 
         function submitSequenceResult(userSequence, sequenceButtonMat){
@@ -392,10 +359,9 @@
         }
         
         function generateLever(position, scaling, scene, orientation){
-            const baseScaling = generateBase(scaling,position,orientation);
+            const base = generateBase(scaling,position,orientation);
             const lever = new BABYLON.MeshBuilder.CreateBox('lever',{});
             const leverMat = new BABYLON.StandardMaterial('leverMat');
-            const leverPos = new BABYLON.Vector3(0,0,0);
             const leverScaling = new BABYLON.Vector3(3,0.4,1);
             if(orientation == 'diagonal'){
                 leverScaling['x'] *= scaling;
@@ -405,23 +371,16 @@
             } else {leverScaling['x'] *= scaling}
             
             let leverState = 0;
-            leverPos['x'] = position['x']
-            leverPos['y'] = baseScaling['y']/2
-            leverPos['z'] = position['z']
             leverMat.diffuseColor = new BABYLON.Color3(0,0,0.6);
             lever.material = leverMat;
-            lever.position = leverPos;
+            lever.position = new BABYLON.Vector3(position['x'],base.scaling.y/2,position['z']);
             lever.scaling = leverScaling;
             lever.rotation.z = Math.PI*(30/180);
             const leverStatus = new BABYLON.MeshBuilder.CreateSphere("sphere", {slice: 0.5, sideOrientation: BABYLON.Mesh.DOUBLESIDE});
             const leverStatusMat = new BABYLON.StandardMaterial('leverStatusMat');
             leverStatusMat.diffuseColor = new BABYLON.Color3(1,0,0);
             leverStatus.material = leverStatusMat;
-            const leverStatusPos = new BABYLON.Vector3(0,0,0);
-            leverStatusPos['x'] = position['x'] - baseScaling['x']/2 + 0.5*scaling
-            leverStatusPos['y'] = lever.scaling['y']-0.2
-            leverStatusPos['z'] = position['z'] + baseScaling['z']/2 - 0.5*scaling
-            leverStatus.position = leverStatusPos;
+            leverStatus.position = new BABYLON.Vector3(position['x'] - base.scaling.x/2 + 0.5*scaling,lever.scaling['y']-0.2,position['z'] + base.scaling.z/2 - 0.5*scaling);
 
             lever.actionManager = new BABYLON.ActionManager(scene);
             lever.actionManager.registerAction(
@@ -457,20 +416,14 @@
                 }
             }
             onHover(lever,leverMat,'blue');
-
-
-
-
         }
         
         function generateRotatingDial(position, scaling,scene,camera){
-            const baseScaling = generateBase(scaling,position,'diagonal');
+            const base = generateBase(scaling,position,'diagonal');
             const dialBase = new BABYLON.MeshBuilder.CreateCylinder("dialBase",{})
             const dialPointer = new BABYLON.MeshBuilder.CreateBox("dialPointer",{});
             const dialPointerScaling = new BABYLON.Vector3(2.3*scaling,0.5,0.5*scaling);
             const dialBaseScaling = new BABYLON.Vector3(2.3*scaling,0.4,2.3*scaling);
-            const dialPointerPos = new BABYLON.Vector3(0,0,0);
-            const dialBasePos = new BABYLON.Vector3(0,0,0);
             const dialBaseMat = new BABYLON.StandardMaterial('dialBaseMat');
             const dialPointerMat = new BABYLON.StandardMaterial('dialPointerMat');
             dialPointer.rotation.z = Math.PI*(15/180)
@@ -479,15 +432,8 @@
             dialBase.material = dialBaseMat;
             dialPointer.material = dialPointerMat;
 
-            dialBasePos['x'] = position['x'];
-            dialBasePos['y'] = baseScaling['y']/2;
-            dialBasePos['z'] = position['z'] + 0.5*scaling;
-            dialPointerPos['x'] = position['x'] -0.1;
-            dialPointerPos['y'] = dialBasePos['y'] + dialPointerScaling['y']/2 - 0.24;
-            dialPointerPos['z'] = position['z']+ 0.5*scaling;
-
-            dialPointer.position = dialPointerPos;
-            dialBase.position = dialBasePos;
+            dialBase.position = new BABYLON.Vector3(position['x'], base.scaling.y/2,position['z']+0.5*scaling)
+            dialPointer.position = new BABYLON.Vector3(position['x']-0.1, dialBase.position.y + dialPointerScaling['y']/2 -0.24, position['z']+0.5*scaling);;
             dialPointer.scaling = dialPointerScaling;
             dialBase.scaling = dialBaseScaling;
 
@@ -497,72 +443,43 @@
             let currentRotation = {x: 0,y: 0 };
             let clicked = false;
             let over = false;
-            dialPointer.actionManager.registerAction(
-                new BABYLON.ExecuteCodeAction(
-                    BABYLON.ActionManager.OnPickDownTrigger,
-                    function() {
-                        over = true;
-                        camera.detachControl(canvas,false)
-                    }
-                )
-            )
-            dialPointer.actionManager.registerAction(
-                new BABYLON.ExecuteCodeAction(
-                    BABYLON.ActionManager.OnPickOutTrigger,
-                    function() {
-                        over = false;
-                        console.log((180/Math.PI)*dialPointer.rotation.y)
-                        rotatingDialThresholdCheck(dialPointer.rotation.y);
-                        camera.attachControl(canvas,true)
-                    }
-                )
-            )
 
-            dialBase.actionManager.registerAction(
-                new BABYLON.ExecuteCodeAction(
-                    BABYLON.ActionManager.OnPickDownTrigger,
-                    function() {
-                        over = true;
-                        camera.detachControl(canvas,false)
-
-                    }
+            function initDialAction(mesh){
+                mesh.actionManager.registerAction(
+                    new BABYLON.ExecuteCodeAction(
+                        BABYLON.ActionManager.OnPickDownTrigger,
+                        function(){
+                            over = true;
+                            camera.detachControl(canvas,false)
+                        }
+                    )
                 )
-            )
-            dialBase.actionManager.registerAction(
-                new BABYLON.ExecuteCodeAction(
-                    BABYLON.ActionManager.OnPickOutTrigger,
-                    function() {
-                        over = false;
-                        console.log((180/Math.PI)*dialPointer.rotation.y)
-                        rotatingDialThresholdCheck(dialPointer.rotation.y);
-                        camera.attachControl(canvas,false)
-                    }
+                mesh.actionManager.registerAction(
+                    new BABYLON.ExecuteCodeAction(
+                        BABYLON.ActionManager.OnPickOutTrigger,
+                        function() {
+                            over = false;
+                            //console.log((180/Math.PI)*dialPointer.rotation.y)
+                            rotatingDialThresholdCheck(dialPointer.rotation.y);
+                            camera.attachControl(canvas,true)
+                        }
+                    )
                 )
-            )
-
-            dialPointer.actionManager.registerAction(
-                new BABYLON.ExecuteCodeAction(
-                    BABYLON.ActionManager.OnPickUpTrigger,
-                    function() {
-                        over = false;
-                        console.log((180/Math.PI)*dialPointer.rotation.y)
-                        rotatingDialThresholdCheck(dialPointer.rotation.y);
-                        camera.attachControl(canvas,false)
-                    }
+                mesh.actionManager.registerAction(
+                    new BABYLON.ExecuteCodeAction(
+                        BABYLON.ActionManager.OnPickUpTrigger,
+                        function() {
+                            over = false;
+                            //console.log((180/Math.PI)*dialPointer.rotation.y)
+                            rotatingDialThresholdCheck(dialPointer.rotation.y);
+                            camera.attachControl(canvas,false)
+                        }
+                    )
                 )
-            )
-
-            dialBase.actionManager.registerAction(
-                new BABYLON.ExecuteCodeAction(
-                    BABYLON.ActionManager.OnPickUpTrigger,
-                    function() {
-                        over = false;
-                        console.log((180/Math.PI)*dialPointer.rotation.y)
-                        rotatingDialThresholdCheck(dialPointer.rotation.y);
-                        camera.attachControl(canvas,false)
-                    }
-                )
-            )
+            }
+            
+            initDialAction(dialPointer);
+            initDialAction(dialBase);
 
             canvas.addEventListener("pointerdown", function (evt) {
                 currentPosition.x = evt.clientX;
@@ -586,10 +503,8 @@
             canvas.addEventListener("pointerup", function (evt) {
                 clicked = false;
             });
-           
-            onHover(dialPointer,dialPointerMat,'blue');
-                
-            
+            onHover(dialBase,dialPointerMat,'blue')
+            onHover(dialPointer,dialPointerMat,'blue');   
         }
 
         function rotatingDialThresholdCheck(rotation){
@@ -615,49 +530,41 @@
         }
         
         function generateJoyStick(position, scaling, scene){
-            const baseScaling = generateBase(scaling, position, 'diagonal');
+            const base = generateBase(scaling, position, 'diagonal');
             const joyStickBase = new BABYLON.MeshBuilder.CreateBox('joyStickBase',{});
             const joyStickBaseMat = new BABYLON.StandardMaterial('joyStickBaseMat');
             const joyStickBaseScaling = new BABYLON.Vector3(3*scaling,0.1,3*scaling);
-            const joyStickBasePos = new BABYLON.Vector3(0,0,0);
-            joyStickBasePos['x'] = position['x'];
-            joyStickBasePos['y'] = baseScaling['y']/2;
-            joyStickBasePos['z'] = position['z'] + 0.5*scaling;
             joyStickBaseMat.diffuseColor = new BABYLON.Color3(0,0,0);
             joyStickBase.material = joyStickBaseMat;
-            joyStickBase.position = joyStickBasePos;
+            joyStickBase.position = new BABYLON.Vector3(position['x'], base.scaling.y/2, position['z']+0.5*scaling);
             joyStickBase.scaling = joyStickBaseScaling;
 
             const joyStick = new BABYLON.MeshBuilder.CreateBox('joyStick',{});
             const joyStickMat = new BABYLON.StandardMaterial('joyStickMat');
-            const joyStickPos = new BABYLON.Vector3(0,0,0);
             const joyStickScaling = new BABYLON.Vector3(0.7,1,0.7);
-            joyStickPos['x'] = position['x'];
-            joyStickPos['y'] = baseScaling['y']/2 + joyStickScaling['y']/2;
-            joyStickPos['z'] = position['z'] + 0.5*scaling;
             joyStickMat.diffuseColor = new BABYLON.Color3(0,0,0.6);
             joyStick.material = joyStickMat;
-            joyStick.position = joyStickPos;
+            joyStick.position = new BABYLON.Vector3(position['x'],base.scaling.y/2 + joyStickScaling['y']/2,position['z']+0.5*scaling)
             joyStick.scaling = joyStickScaling;
 
             const points1 = [
-                new BABYLON.Vector3(position['x']+joyStickBaseScaling['x']/2,joyStickBasePos['y']+joyStickBaseScaling['y']/2+0.01,position['z']-joyStickBaseScaling['z']/2+0.5*scaling),
-                new BABYLON.Vector3(position['x']-joyStickBaseScaling['x']/2,joyStickBasePos['y']+joyStickBaseScaling['y']/2+0.01,position['z']+joyStickBaseScaling['z']/2+0.5*scaling),
+                new BABYLON.Vector3(position['x']+joyStickBaseScaling['x']/2,joyStickBase.position.y+joyStickBaseScaling['y']/2+0.01,position['z']-joyStickBaseScaling['z']/2+0.5*scaling),
+                new BABYLON.Vector3(position['x']-joyStickBaseScaling['x']/2,joyStickBase.position.y+joyStickBaseScaling['y']/2+0.01,position['z']+joyStickBaseScaling['z']/2+0.5*scaling),
             ]
 
             const points2 = [
-                new BABYLON.Vector3(position['x']-joyStickBaseScaling['x']/2,joyStickBasePos['y']+joyStickBaseScaling['y']/2+0.01,position['z']-joyStickBaseScaling['z']/2+0.5*scaling),
-                new BABYLON.Vector3(position['x']+joyStickBaseScaling['x']/2,joyStickBasePos['y']+joyStickBaseScaling['y']/2+0.01,position['z']+joyStickBaseScaling['z']/2+0.5*scaling),
+                new BABYLON.Vector3(position['x']-joyStickBaseScaling['x']/2,joyStickBase.position.y+joyStickBaseScaling['y']/2+0.01,position['z']-joyStickBaseScaling['z']/2+0.5*scaling),
+                new BABYLON.Vector3(position['x']+joyStickBaseScaling['x']/2,joyStickBase.position.y+joyStickBaseScaling['y']/2+0.01,position['z']+joyStickBaseScaling['z']/2+0.5*scaling),
             ]
 
             const points3 = [
-                new BABYLON.Vector3(position['x'],joyStickBasePos['y']+joyStickBaseScaling['y']/2+0.01,position['z']-joyStickBaseScaling['z']/2+0.5*scaling),
-                new BABYLON.Vector3(position['x'],joyStickBasePos['y']+joyStickBaseScaling['y']/2+0.01,position['z']+joyStickBaseScaling['z']/2+0.5*scaling),
+                new BABYLON.Vector3(position['x'],joyStickBase.position.y+joyStickBaseScaling['y']/2+0.01,position['z']-joyStickBaseScaling['z']/2+0.5*scaling),
+                new BABYLON.Vector3(position['x'],joyStickBase.position.y+joyStickBaseScaling['y']/2+0.01,position['z']+joyStickBaseScaling['z']/2+0.5*scaling),
             ]
 
             const points4 = [
-                new BABYLON.Vector3(position['x']+joyStickBaseScaling['x']/2,joyStickBasePos['y']+joyStickBaseScaling['y']/2+0.01,position['z']+0.5*scaling),
-                new BABYLON.Vector3(position['x']-joyStickBaseScaling['x']/2,joyStickBasePos['y']+joyStickBaseScaling['y']/2+0.01,position['z']+0.5*scaling),
+                new BABYLON.Vector3(position['x']+joyStickBaseScaling['x']/2,joyStickBase.position.y+joyStickBaseScaling['y']/2+0.01,position['z']+0.5*scaling),
+                new BABYLON.Vector3(position['x']-joyStickBaseScaling['x']/2,joyStickBase.position.y+joyStickBaseScaling['y']/2+0.01,position['z']+0.5*scaling),
             ]
 
             const line1 = BABYLON.MeshBuilder.CreateLines('line1',{points:points1});
@@ -675,15 +582,15 @@
             const pointerDragBehavior = new BABYLON.PointerDragBehavior({dragPlaneNormal: new BABYLON.Vector3(0,1,0)});
             joyStick.addBehavior(pointerDragBehavior);
             onHover(joyStick,joyStickMat,'blue');
-            const xMin = joyStickBasePos['x'] - joyStickBase.scaling['x']/2 + joyStick.scaling['x']/2
-            const xMax = joyStickBasePos['x'] + joyStickBase.scaling['x']/2 - joyStick.scaling['x']/2
-            const zMin = joyStickBasePos['z'] - joyStickBase.scaling['z']/2 + joyStick.scaling['z']/2
-            const zMax = joyStickBasePos['z'] + joyStickBase.scaling['z']/2 - joyStick.scaling['z']/2
+            const xMin = joyStickBase.position.x - joyStickBase.scaling['x']/2 + joyStick.scaling['x']/2
+            const xMax = joyStickBase.position.x + joyStickBase.scaling['x']/2 - joyStick.scaling['x']/2
+            const zMin = joyStickBase.position.z - joyStickBase.scaling['z']/2 + joyStick.scaling['z']/2
+            const zMax = joyStickBase.position.z + joyStickBase.scaling['z']/2 - joyStick.scaling['z']/2
             const boundary = [xMin,xMax,zMin,zMax]
             pointerDragBehavior.onDragEndObservable.add((event)=>{
                 let stickPos = {x:Math.round(joyStick.position['x']*100)/100,z:Math.round(joyStick.position['z']*100)/100}
-                console.log(stickPos);
-                joyStickThresholdCheck(stickPos,boundary,joyStickBasePos,lines)
+                //console.log(stickPos);
+                joyStickThresholdCheck(stickPos,boundary,joyStickBase.position,lines)
                 //console.log(event);
              })
             pointerDragBehavior.validateDrag = (targetPosition)=>{
@@ -787,6 +694,173 @@
             }
         }
 
+        function generateKeyPad(position, scaling, scene){
+            const base = generateBase(scaling, position, 'diagonal');
+            const key1 = new BABYLON.MeshBuilder.CreateBox('key1',{});
+            const key2 = new BABYLON.MeshBuilder.CreateBox('key2',{});
+            const key3 = new BABYLON.MeshBuilder.CreateBox('key3',{});
+            const key4 = new BABYLON.MeshBuilder.CreateBox('key4',{});
+            const key5 = new BABYLON.MeshBuilder.CreateBox('key5',{});
+            const key6 = new BABYLON.MeshBuilder.CreateBox('key6',{});
+            const key7 = new BABYLON.MeshBuilder.CreateBox('key7',{});
+            const key8 = new BABYLON.MeshBuilder.CreateBox('key8',{});
+            const key9 = new BABYLON.MeshBuilder.CreateBox('key9',{});
+            const keySubmit = new BABYLON.MeshBuilder.CreateBox('keySubmit',{});
+            const keyDelete = new BABYLON.MeshBuilder.CreateBox('keyDelete',{});
+            const keyCancel = new BABYLON.MeshBuilder.CreateBox('keyCancel',{});
+            const keys = [key1,key2,key3,key4,key5,key6,key7,key8,key9,keyDelete,keyCancel,keySubmit];
+            const keyScaling = new BABYLON.Vector3(1*scaling, 0.3, 0.7*scaling);
+            const key1Mat = new BABYLON.StandardMaterial('key1Mat');
+            const key2Mat = new BABYLON.StandardMaterial('key2Mat');
+            const key3Mat = new BABYLON.StandardMaterial('key3Mat');
+            const key4Mat = new BABYLON.StandardMaterial('key4Mat');
+            const key5Mat = new BABYLON.StandardMaterial('key5Mat');
+            const key6Mat = new BABYLON.StandardMaterial('key6Mat');
+            const key7Mat = new BABYLON.StandardMaterial('key7Mat');
+            const key8Mat = new BABYLON.StandardMaterial('key8Mat');
+            const key9Mat = new BABYLON.StandardMaterial('key9Mat');
+            const keySubmitMat = new BABYLON.StandardMaterial('keySubmitMat');
+            const keyDeleteMat = new BABYLON.StandardMaterial('keyDeleteMat');
+            const keyCancelMat = new BABYLON.StandardMaterial('keyCancelMat');
+            const keyMat = [key1Mat,key2Mat,key3Mat,key4Mat,key5Mat,key6Mat,key7Mat,key8Mat,key9Mat,keyDeleteMat, keyCancelMat, keySubmitMat];
+            
+            keySubmitMat.diffuseColor = new BABYLON.Color3(0,0.6,0);
+            keyCancelMat.diffuseColor = new BABYLON.Color3(0.6,0,0);
+            keyDeleteMat.diffuseColor = new BABYLON.Color3(0.6,0.6,0);
+            keyMat.diffuseColor = new BABYLON.Color3(0,0,0.6);
+
+            const positions = [
+                new BABYLON.Vector3(position['x']+ keyScaling['x']*1.5+0.2, base.scaling.y/2, position['z']-0.3+0.5*scaling),
+                new BABYLON.Vector3(position['x']+ keyScaling['x']*0.5+0.1, base.scaling.y/2, position['z']-0.3+0.5*scaling),
+                new BABYLON.Vector3(position['x']- keyScaling['x']*0.5, base.scaling.y/2, position['z']-0.3+0.5*scaling),
+                
+                new BABYLON.Vector3(position['x']+ keyScaling['x']*1.5+0.2, base.scaling.y/2, position['z']+keyScaling['z']-0.2+0.5*scaling),
+                new BABYLON.Vector3(position['x']+ keyScaling['x']*0.5+0.1, base.scaling.y/2, position['z']+keyScaling['z']-0.2+0.5*scaling),
+                new BABYLON.Vector3(position['x']- keyScaling['x']*0.5, base.scaling.y/2, position['z']+keyScaling['z']-0.2+0.5*scaling),
+
+                new BABYLON.Vector3(position['x']+ keyScaling['x']*1.5+0.2, base.scaling.y/2, position['z']+keyScaling['z']*2-0.1+0.5*scaling),
+                new BABYLON.Vector3(position['x']+ keyScaling['x']*0.5+0.1, base.scaling.y/2, position['z']+keyScaling['z']*2-0.1+0.5*scaling),
+                new BABYLON.Vector3(position['x']- keyScaling['x']*0.5, base.scaling.y/2, position['z']+keyScaling['z']*2-0.1+0.5*scaling),
+            ]
+
+            const positions2 = [
+                new BABYLON.Vector3(position['x']- keyScaling['x']*1.5-0.2, base.scaling.y/2, position['z']-0.3+0.5*scaling),
+                new BABYLON.Vector3(position['x']- keyScaling['x']*1.5-0.2, base.scaling.y/2, position['z']+keyScaling['z']-0.2+0.5*scaling),
+                new BABYLON.Vector3(position['x']- keyScaling['x']*1.5-0.2, base.scaling.y/2, position['z']+keyScaling['z']*2-0.1+0.5*scaling)
+            ]
+            let sequence = [];
+            for(let i = 0; i < keys.length;i++){
+                keys[i].scaling = keyScaling;
+                keys[i].actionManager = new BABYLON.ActionManager(scene);
+                keys[i].material = keyMat[i];
+                
+                if(i < 9){
+                    keyMat[i].diffuseColor = new BABYLON.Color3(0,0,0.6);
+                    onHover(keys[i],keyMat[i],'blue');
+                    keys[i].position = positions[i];
+                    initKeyPadAction(keys[i],i+1)
+                }else{
+                    keys[i].position = positions2[i-9];
+                }
+
+            }
+            onHover(keys[9],keyMat[9],'yellow');
+            onHover(keys[10],keyMat[10],'red');
+            onHover(keys[11],keyMat[11],'green');
+            initKeyPadAction(keys[9],'Delete')
+            initKeyPadAction(keys[10],'Cancel')
+            initKeyPadAction(keys[11],'Submit')
+
+            const textBoxes = [];
+            const displayBackground = BABYLON.Mesh.CreatePlane('displayBackground');
+            const displayBackgroundMat = new BABYLON.StandardMaterial('displayBackgroundMat');
+            displayBackgroundMat.diffuseColor = new BABYLON.Color3(0,0,0);
+            displayBackground.material = displayBackgroundMat;
+            displayBackground.parent = base;
+            displayBackground.rotation = new BABYLON.Vector3(Math.PI/2, Math.PI, 0);
+            displayBackground.position = new BABYLON.Vector3(0,base.scaling['y']/2+0.01,-0.18)
+            displayBackground.scaling = new BABYLON.Vector3(0.9,0.2,0);
+
+            const display1 = BABYLON.Mesh.CreatePlane('display1');
+            const display2 = BABYLON.Mesh.CreatePlane('display2');
+            const display3 = BABYLON.Mesh.CreatePlane('display3');
+            const display4 = BABYLON.Mesh.CreatePlane('display4');
+        
+            display1.parent = key1;
+            display2.parent = key2;
+            display3.parent = key3;
+            display4.parent = keyDelete;
+            const displays = [display1, display2, display3, display4];
+            for(let i = 0; i<displays.length; i++){
+                displays[i].rotation = new BABYLON.Vector3(Math.PI/2, Math.PI, 0);
+                displays[i].position = new BABYLON.Vector3(0,displayBackground.position.y/2,-1.5-0.1*scaling);
+                initTextBoxToPlane(displays[i]);
+            }
+
+            function initTextBoxToPlane(mesh){
+                let advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(mesh);
+                const textBox = new BABYLON.GUI.TextBlock();
+                textBox.color = "white";
+                textBox.fontSize = 800;
+                advancedTexture.addControl(textBox);
+                textBoxes.push(textBox);
+            }
+    
+            function initKeyPadAction(mesh, value){
+                mesh.actionManager.registerAction(
+                    new BABYLON.ExecuteCodeAction(
+                        BABYLON.ActionManager.OnPickTrigger,
+                        function(){
+                            if(value == 'Submit'){
+                                sequence = submitKeyPadSequence(sequence);
+                                updateTextBox(sequence,textBoxes)
+                            }
+
+                            else if(value == 'Delete'){
+                                if(sequence.length>=1){
+                                    sequence.pop()
+                                    updateTextBox(sequence,textBoxes)
+                                }
+                            }
+
+                            else if (value == 'Cancel'){
+                                sequence = []
+                                updateTextBox(sequence,textBoxes)
+                            }
+
+                            else{
+                                if(sequence.length<4){
+                                sequence.push(value);
+                                updateTextBox(sequence,textBoxes)
+                                }
+                            }
+                            
+                        }
+                    )
+                )
+            }
+
+            
+            
+
+        }
+
+        function submitKeyPadSequence(sequence){
+            console.log(sequence);
+            sequence = [];
+            return sequence;
+        }
+
+        function updateTextBox(sequence, textBoxes){
+            for(let i = 0; i < textBoxes.length; i++){
+                if(sequence[i] != undefined){
+                    textBoxes[i].text = sequence[i];
+                } else {
+                    textBoxes[i].text = "";
+                }
+            }
+        }
+
         function onHover(mesh, material, color){
             mesh.actionManager.registerAction(
                 new BABYLON.ExecuteCodeAction(
@@ -830,8 +904,6 @@
             );
         }
         
-        
-
         function generateBaseBig(){
             const base = new BABYLON.MeshBuilder.CreateBox("box",{width:15,depth:15});
             const points1 = [
