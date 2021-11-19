@@ -1,7 +1,9 @@
 const { customAlphabet } = require("nanoid");
 const nanoid = customAlphabet("123456789ABCDEFGHIJKLMNOPRSTUVWXYZ", 6);
 const Room = require('../room.js')
-const { redisClient } = require("../redis.js")
+const redisHelper = require("./redisHelper.js")
+const { redisClient } = require("../redis.js");
+const Player = require("../player.js");
 
 module.exports = function(io){
     io.on("connection", function(socket){
@@ -14,42 +16,38 @@ module.exports = function(io){
             session.playerName = "unknown";
             socket.join(roomCode);
             var room = new Room(roomCode, teamName);
-            room.playerUID[[sessionID]] = socket.id;
+            var roomCreator = new Player(sessionID, socket.id, session.playerName);
+
             redisClient.json_set(roomCode, '.', JSON.stringify(room), function(err){
                 if(err){
-                    console.log(err)
+                    console.log(err);
                 }
                 else{
                     redisClient.expire(roomCode, 60 * 60 * 2);
+                    redisHelper.addPlayerToRoom(io, roomCode, roomCreator, socket);
                     io.to(roomCode).emit("roomCreated", roomCode);
-                }
+                };
             });
-            redisClient.set(sessionID, roomCode)
-            // Example get request
-            // redisClient.json_get(roomCode, '.timer', function(err, value){
-            //     if(err){console.log(err)}
-            //     console.log(value)
-            // })
+            
         });
         socket.on("joinRoom", function(roomCode){
             // Check if roomcode exist in the server list
-            redisClient.json_objlen(roomCode, '.playerUID', function(err, value){
-                console.log(value)
+            var joiningPlayer = new Player(sessionID, socket.id, session.playerName);
+            redisClient.json_objlen(roomCode, '.playerInfo', function(err, value){
+                console.log(value);
                 if(err){
                     console.log(err);
-                    io.to(socket.id).emit("error", "Room does not exist")
+                    io.to(socket.id).emit("error", "Room does not exist");
                 } else if(value >= 4){
-                    io.to(socket.id).emit("error", "Cannot join a full room.")
+                    io.to(socket.id).emit("error", "Cannot join a full room.");
                 } else{
-                    redisClient.set(sessionID, roomCode);
-                    redisClient.json_arrappend(roomCode, '.playerUID', '\"' + socket.id + '\"', function(err){
-                        if(err){console.log(err)}
-                        else{                        
-                            socket.join(roomCode);
-                            io.to(socket.id).emit("joinSuccess")
-                        }
-                    })
+                    console.log(sessionID);
+                    redisHelper.addPlayerToRoom(io, roomCode, joiningPlayer, socket);
                 };
+            });
+
+            redisClient.json_get(roomCode, '.playerInfo', function(err,value){
+                console.log(value)
             })
         });
 
@@ -75,17 +73,7 @@ module.exports = function(io){
             // Timer needs to be stored in room object of player
             // One room only need one timer for all of them.
             
-            redisClient.get(sessionID, function(err, value){
-                if(err){console.log(err)}
-                else{
-                    redisClient.json_objlen(value, '.playerUID', function(err, value){
-                        if(err){console.log(err)}
-                        else{
-
-                        }
-                    })
-                }
-            })
+            redisHelper.getPlayerRoom(sessionID)
             
         })
 

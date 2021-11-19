@@ -6,9 +6,9 @@ class Room {
         
         this.teamName = teamName;
         
-        // Structure of player UID will be SessionID : SocketID
-        // SocketID will later be used to give task to specific user 
-        this.playerUID = [];
+        // Contains relevant data on all players inside the room
+        // Players are identified by their session ID.
+        this.playerInfo = {};
         
         this.lives = 3;
 

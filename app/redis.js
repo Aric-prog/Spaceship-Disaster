@@ -13,6 +13,10 @@ const redisClient = redis.createClient({
     auth_pass : config.redis.auth
 });
 
+redisClient.on('error', function(err){
+    console.error('Redis error : ', err);
+})
+
 const session = expressSession({
     store : new RedisStore({client : redisClient}),
     secret : 'catsAreGreat',
