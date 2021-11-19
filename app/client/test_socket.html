@@ -7,12 +7,23 @@
     <title>Document</title>
 </head>
 <body>
-    <div id="roomCode"></div>
-    <button onclick="createRoom()">Create Game Button</button>
-    
-    <input id="inputRoomCode" type="text">
-    <button onclick="joinRoom()">Join Room</button>
-    <button onclick="reset()">Reset</button>
+    <div>
+        <div id="roomCode"></div>
+        <button onclick="createRoom()">Create Game Button</button>
+        <input id="inputRoomCode" type="text">
+        <button onclick="joinRoom()">Join Room</button>
+        <button onclick="reset()">Reset</button>
+        <t>Timer : </t>
+        
+        <timer id="timer">0</timer>
+    </div>
+
+    <div>- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - </div>
+    <input id="inputTaskName" type="text">
+    <button onclick="binaryEvent()">Binary</button>
+    <button onclick="numericEvent()">Numeric</button>
+    <button onclick="sequenceEvent()">Sequence</button>
+    <button onclick="stringEvent()">String</button>
 </body>
 <!-- Socket io stuff -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
@@ -23,11 +34,15 @@
         alert(errMessage);
     });
     socket.on("timer", function(timeInSec){
-        console.log(timeInSec);
+        $('timer').html(timeInSec)
     });
     socket.on("roomCreated", function(roomCode){
         $('#roomCode').text(roomCode);
     });
+    socket.on("joinSuccess", function(){
+        alert("succesfully joined room")
+    })
+
     function createRoom(){
         // Sending signal to server named createRoom
         socket.emit("createRoom");
@@ -35,8 +50,22 @@
     function joinRoom(){
         socket.emit("joinRoom", $('#inputRoomCode').val());
     };
+
+
     function reset(){
         socket.emit("reset");
+    };
+    function binaryEvent(taskName){
+        socket.emit("binary", $('inputTaskName').val());
+    };
+    function numericEvent(taskName){
+        socket.emit("numeric", $('inputTaskName').val());
+    };
+    function sequenceEvent(taskName){
+        socket.emit("sequence", $('inputTaskName').val());
+    };
+    function stringEvent(taskName){
+        socket.emit("string", $('inputTaskName').val());
     };
 </script>
 </html>
