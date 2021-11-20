@@ -10,6 +10,7 @@
     <div>
         <div id="roomCode"></div>
         <button onclick="createRoom()">Create Game Button</button>
+        <button onclick="start()">Start</button>
         <input id="inputRoomCode" type="text">
         <button onclick="joinRoom()">Join Room</button>
         <button onclick="reset()">Reset</button>
@@ -42,7 +43,13 @@
     socket.on("joinSuccess", function(){
         alert("succesfully joined room")
     })
+    socket.on("start", function(){
+        alert("game started")
+    })
 
+    function start(){
+        socket.emit("start");
+    }
     function createRoom(){
         // Sending signal to server named createRoom
         socket.emit("createRoom");
@@ -50,7 +57,6 @@
     function joinRoom(){
         socket.emit("joinRoom", $('#inputRoomCode').val());
     };
-
 
     function reset(){
         socket.emit("reset");

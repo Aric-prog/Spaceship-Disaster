@@ -4,8 +4,12 @@ const Room = require('../room.js')
 const redisHelper = require("./redisHelper.js")
 const { redisClient } = require("../redis.js");
 const Player = require("../player.js");
+const PlayerRoomPairing = require("../playerRoomPairing.js");
 
 module.exports = function(io){
+    // Initialize empty room variable that stores which room the player is in.
+    redisClient.json_set('playerRooms', '.', JSON.stringify({}));
+
     io.on("connection", function(socket){
         const session = socket.handshake.session;
         const sessionID = socket.handshake.sessionID;
@@ -33,35 +37,19 @@ module.exports = function(io){
         socket.on("joinRoom", function(roomCode){
             // Check if roomcode exist in the server list
             var joiningPlayer = new Player(sessionID, socket.id, session.playerName);
-            redisClient.json_objlen(roomCode, '.playerInfo', function(err, value){
-                console.log(value);
+            redisClient.json_objlen(roomCode, '.playerInfo', function(err, playerCountInRoom){
+                console.log(playerCountInRoom);
                 if(err){
                     console.log(err);
                     io.to(socket.id).emit("error", "Room does not exist");
-                } else if(value >= 4){
+                } else if(playerCountInRoom >= 4){
                     io.to(socket.id).emit("error", "Cannot join a full room.");
                 } else{
                     console.log(sessionID);
                     redisHelper.addPlayerToRoom(io, roomCode, joiningPlayer, socket);
                 };
             });
-
-            redisClient.json_get(roomCode, '.playerInfo', function(err,value){
-                console.log(value)
-            })
         });
-
-        // TODO : Rethink this function
-        // socket.on("reconnect", function(){
-        //     redisClient.json_get(session.roomCode, '.playerUID', function(err, value){
-        //         if(value === sessionID){
-        //             // Checks if reconnecting player is actually already in the room before.
-        //             socket.join(session.roomCode)
-        //         } else{
-        //             io.to(socket.id).emit("error", "Failed to reconnect");
-        //         }
-        //     })
-        // })
 
         // Starts the game, argument may contain settings for the game
         socket.on("start", function(){
@@ -72,9 +60,28 @@ module.exports = function(io){
             
             // Timer needs to be stored in room object of player
             // One room only need one timer for all of them.
-            
-            redisHelper.getPlayerRoom(sessionID)
-            
+            redisClient.json_get('playerRooms', '.sid' + sessionID, function(err, roomCode){
+                if(err){console.log(err);} 
+                else{
+                    // Remove all quotes
+                    roomCode = roomCode.replace(/['"]+/g, "");
+                    redisClient.json_objlen(roomCode, '.playerInfo', function(err, playerCountInRoom){
+                        console.log(playerCountInRoom)
+                        if(err){console.log(err);} 
+                        else if(playerCountInRoom == 4){
+                            io.to(roomCode).emit('start')
+                            var timeInSec = 60;
+                            const mainTimer = setInterval(function(){
+                                io.to(roomCode).emit('timer', timeInSec);
+                                timeInSec -= 1;
+                                if(timeInSec <= 0){
+                                    clearInterval(mainTimer);
+                                }
+                            }, 1000)
+                        }
+                    })
+                }
+            })    
         })
 
         socket.on("disconnecting", function(){
@@ -91,7 +98,7 @@ module.exports = function(io){
         // Very bad feature, only use for testing environment
         socket.on("reset", function(){
             redisClient.flushall();
-            session.roomCode = "";
+            redisClient.json_set('playerRooms', '.', JSON.stringify({}));
         })
     })   
 }
