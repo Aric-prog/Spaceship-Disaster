@@ -9,8 +9,6 @@ class Room {
         // Contains relevant data on all players inside the room
         // Players are identified by their session ID.
         this.playerInfo = {};
-        
-        this.lives = 3;
 
         this.timer = 90;
 
