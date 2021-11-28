@@ -27,4 +27,18 @@ function getPlayerRoom(sessionID){
     })
 }
 
-module.exports = {addPlayerToRoom, getPlayerRoom}
+function addPanelList(roomCode, sessionID, panelList){
+    redisClient.json_set(roomCode, 'playerInfo.sid' + sessionID + '.panelList', JSON.stringify(panelList), function(err){
+        if(err){
+            console.log(err);
+        }
+    })
+}
+
+function endRoom(sessionID){
+    // Get client room here and posts relevant data on database
+}
+
+
+
+module.exports = {addPlayerToRoom, getPlayerRoom, endRoom, addPanelList}

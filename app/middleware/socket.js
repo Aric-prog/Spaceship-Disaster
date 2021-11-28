@@ -7,5 +7,6 @@ function initSocket(io) {
     }));
     const inputHandler = require("../socket/inputHandler.js")(io)
     const roomHandler = require("../socket/roomHandler.js")(io)  
+    const taskHandler = require("../socket/taskHandler.js")(io)  
 };
 module.exports = initSocket;

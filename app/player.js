@@ -4,6 +4,7 @@ class Player {
         this.sessionID = sessionID;
         this.socketID = socketID;
         this.username = username;
+        this.panelList = {};
     }
 }
 

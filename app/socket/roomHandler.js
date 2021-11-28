@@ -6,6 +6,7 @@ const { redisClient } = require("../redis.js");
 const Player = require("../player.js");
 const roomAbleToStart = require("../middleware/roomAbleToStart.js");
 
+const mainTimers = {}
 module.exports = function(io){
     // Initialize empty room variable that stores which room the player is in.
     redisClient.json_set('playerRooms', '.', JSON.stringify({}));
@@ -70,7 +71,8 @@ module.exports = function(io){
 
         // Adds some data on the packet for later use
         socket.use(function(packet, next){
-            packet.push(sessionID)
+            packet.push(sessionID);
+            packet.push(socket);
             next()
         })        
         socket.use(roomAbleToStart)
@@ -84,19 +86,23 @@ module.exports = function(io){
             // Timer needs to be stored in room object of player
             // One room only need one timer for all of them.
 
-            
+            let roomCode = socket.roomCode;
             // Room start initialize here
             // Generate lists of tasks here
-            io.to(roomCode).emit('start');  
+            io.to(roomCode).emit('start');
+            
+            let timeInSec = 60;
             const mainTimer = setInterval(function(){
-                timers[roomCode] -= 1;
-                io.to(roomCode).emit('timer', timers[roomCode]);
-                if(timers[roomCode] <= 0){
-                    // Room is die when this happens
-                    io.to(roomCode).emit('gameOver')
+                timeInSec -= 1;
+                io.to(roomCode).emit('timer', timeInSec);
+                if(timeInSec <= 0){
+                    // Room is die when this happens, don't forget to clear room and stuff here
+                    io.to(roomCode).emit('gameOver');
+                    redisHelper.endRoom(sessionID);
                     clearInterval(mainTimer);
                 }
             }, 1000)
+            mainTimers[roomCode] = mainTimer;
         })
 
         socket.on("error", function(err){
