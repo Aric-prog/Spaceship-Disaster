@@ -15,7 +15,7 @@ class Task {
         
         this.timerID = timerID;
         this.emergency = emergency;
-        this.extraInfo = {};
+        this.extraInfo = "";
     };
 };
 module.exports = Task;

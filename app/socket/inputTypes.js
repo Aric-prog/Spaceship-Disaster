@@ -4,7 +4,7 @@ const typeToGeneric = {
     'slideBar' : 'numeric', 
     'rotateDial' : 'numeric', 
     'keypad' : 'string', 
-    'sequence' : 'string', 
+    'colorSequence' : 'string', 
     'joystick' : 'numeric', 
     'toggle' : 'binary'
 };
@@ -12,7 +12,18 @@ const typeToGeneric = {
 const genericToType = {
     'binary' : ['lever', 'button', 'toggle'],
     'numeric' : ['slideBar', 'rotateDial', 'joystick'],
-    'string' : ['keypad', 'sequence'],
+    'string' : ['keypad', 'colorSequence'],
 }
 
-module.exports = {typeToGeneric, genericToType}
+const numericRange = {
+    'slideBar' : 3,
+    'rotateDial' : 3,
+    'joystick' : 8
+}
+
+const stringRange = {
+    'colorSequence' : 4,
+    'keypad' : 9
+}
+
+module.exports = {typeToGeneric, genericToType, numericRange, stringRange}
