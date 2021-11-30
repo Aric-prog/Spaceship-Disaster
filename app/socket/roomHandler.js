@@ -10,6 +10,7 @@ const mainTimers = {}
 module.exports = function(io){
     // Initialize empty room variable that stores which room the player is in.
     redisClient.json_set('playerRooms', '.', JSON.stringify({}));
+    redisClient.json_set('panelList', '.', JSON.stringify({}));
 
     io.on("connection", function(socket){
         const session = socket.handshake.session;
@@ -92,6 +93,7 @@ module.exports = function(io){
             io.to(roomCode).emit('start');
             
             let timeInSec = 60;
+            // TODO : Remember the time in the rooms, to be used later for penalties when they fuck up
             const mainTimer = setInterval(function(){
                 timeInSec -= 1;
                 io.to(roomCode).emit('timer', timeInSec);

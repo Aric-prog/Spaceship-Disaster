@@ -10,12 +10,12 @@ class Task {
         this.takerSID = takerSID;
         
         this.reward = reward;
-        this.emergency = emergency;
         // Type of panel, outlined from the gdd
         this.type = type;
-
+        
         this.timerID = timerID;
-
-    }
+        this.emergency = emergency;
+        this.extraInfo = {};
+    };
 };
 module.exports = Task;
