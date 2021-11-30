@@ -39,6 +39,7 @@ module.exports = function(io){
     }
     
     function createPanelForRoom(roomCode){
+        let distribution = [4, 5, 5, 6];
         redisClient.json_get(roomCode, '.playerInfo', function(err, playerInfo){
             if(err){
                 console.log(err);
@@ -76,7 +77,6 @@ module.exports = function(io){
             // Generate panel distribution amount of 4,5,5,6
             
             let roomCode = socket.roomCode;
-            let distribution = [4, 5, 5, 6];
             
             // Make this a generic new round function, since the process is the same for new rounds
             redisClient.json_get(roomCode, '.playerInfo', function(err, playerInfo){
@@ -85,10 +85,13 @@ module.exports = function(io){
                 } else{
                     let roomSessionIDList = (Object.keys(JSON.parse(playerInfo)));
                     _.shuffle(roomSessionIDList);
-                    
                     createPanelForRoom(roomCode);
                 }
             })
+        })
+        socket.on('test', function(){
+            let roomCode = socket.roomCode;
+            createTask(roomCode);
         })
         socket.on('error', function(err){
             console.log('err : ' + err);
