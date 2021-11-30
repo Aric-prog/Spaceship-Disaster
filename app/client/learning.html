@@ -49,41 +49,19 @@
         const createScene = function () {
     
             const scene = new BABYLON.Scene(engine);
-            //const base = generateBaseBig();
-            const buttonPos = new BABYLON.Vector3(0,0,5);
-            const buttonScale = 1;
-            const sliderPos = new BABYLON.Vector3(5,0,0);
-            const sliderScale = 3;
-            const sequenceButtonPos = new BABYLON.Vector3(0,0,0);
-            const sequenceButtonScale = 1;
-            const leverPos = new BABYLON.Vector3(-5,0,5);
-            const leverScale = 1;
-            const rotatingDialPos = new BABYLON.Vector3(-5,0,0);
-            const rotatingDialScale = 1;
-            const joyStickPos = new BABYLON.Vector3(0,0,-5)
-            const joyStickScale = 1;
-            const keyPadPos = new BABYLON.Vector3(-5, 0, -5);
-            const keyPadScale = 1;
             const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 15, new BABYLON.Vector3(0, 0, 0));
             camera.attachControl(canvas,true);
             camera.setPosition(new BABYLON.Vector3(0, 20, 0));
             const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0));
-            generateKeyPad(keyPadPos,keyPadScale,scene);
-            generateJoyStick(joyStickPos,joyStickScale,scene);
-            generateRotatingDial(rotatingDialPos,rotatingDialScale,scene,camera);
-            generateLever(leverPos,leverScale,scene,'diagonal');
-            generateSequenceButton(sequenceButtonPos,sequenceButtonScale,scene);
-            generateButton(buttonPos,buttonScale,scene);
-            generateSlider(sliderPos,sliderScale,scene,'vertical');
-            
-            
+            generateControlPanel(4,scene,camera);
+    
             return scene;
         };
 
         const scene = createScene(); //Call the createScene function
         
-        function generateButton(position, scaling, scene){
-            const base = generateBase(scaling,position,'diagonal');
+        function generateButton(position, scaling, scene, name){
+            const base = generateBase(scaling,position,'diagonal',name);
             const button = new BABYLON.MeshBuilder.CreateCylinder("button",{});
             const buttonMat = new BABYLON.StandardMaterial("buttonMat");
             const buttonScaling = new BABYLON.Vector3(3*scaling,0.5,3*scaling)
@@ -120,9 +98,26 @@
 
         }
 
-        function generateBase(scaling,position,type){
+        function generateBase(scaling,position,type,name){
             const base = new BABYLON.MeshBuilder.CreateBox("base",{});
             const baseScaling = new BABYLON.Vector3(5,1,5);
+            const textBase = new BABYLON.MeshBuilder.CreateBox("textBase",{});
+            textBase.position = position;
+            textBase.scaling = new BABYLON.Vector3(5,0.5,5);
+            const textBasePlane = BABYLON.Mesh.CreatePlane('textBasePlane');
+            textBasePlane.parent = textBase;
+            textBasePlane.rotation = new BABYLON.Vector3(Math.PI/2,Math.PI,0);
+            textBasePlane.position = (type == "vertical")? new BABYLON.Vector3(0,1.1,-0.4-(scaling-1)*0.50) : new BABYLON.Vector3(0,1.1,-0.4);
+            if(type == 'diagonal'){
+                textBasePlane.position.z -= 0.5 * (scaling-1);
+            }
+            const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(textBasePlane);
+            const textBox = new BABYLON.GUI.TextBlock();
+            textBox.color = "black";
+            textBox.fontSize = 80;
+            textBox.text = name;
+            advancedTexture.addControl(textBox);
+
             if(type == "diagonal"){
                 baseScaling['x'] *= scaling;
                 baseScaling['z'] *= scaling;
@@ -151,8 +146,8 @@
             return base;
         }
 
-        function generateSlider(position, scaling, scene, orientation){
-            const base = (orientation == 'horizontal')? generateBase(scaling,position,'horizontal'):generateBase(scaling,position,'vertical');
+        function generateSlider(position, scaling, scene, orientation,name){
+            const base = generateBase(scaling, position, orientation,name);
             const sliderBase = new BABYLON.MeshBuilder.CreateBox("sliderBase",{});
             const sliderBaseMat = new BABYLON.StandardMaterial("sliderBaseMat");
             const sliderBaseScaling = new BABYLON.Vector3(1,0.5,1);
@@ -161,30 +156,30 @@
             } else {
                 sliderBaseScaling['x'] *= scaling*3
             }
-
+            sliderBase.position = new BABYLON.Vector3(position['x'],base.scaling.y/2,position['z']);
+            sliderBase.scaling = sliderBaseScaling;
             const points = (orientation=='vertical')?
             [
                 new BABYLON.Vector3(position['x']+sliderBaseScaling['x']/2,sliderBase.position.y+sliderBaseScaling['y']/2+0.01,position['z']),
                 new BABYLON.Vector3(position['x']-sliderBaseScaling['x']/2,sliderBase.position.y+sliderBaseScaling['y']/2+0.01,position['z']),
             ]:[
-                new BABYLON.Vector3(position['x'],sliderBasePos['y']+sliderBaseScaling['y']/2+0.01,position['z']+sliderBaseScaling['z']/2),
-                new BABYLON.Vector3(position['x'],sliderBasePos['y']+sliderBaseScaling['y']/2+0.01,position['z']-sliderBaseScaling['z']/2),
+                new BABYLON.Vector3(position['x'],sliderBase.position.y+sliderBaseScaling['y']/2+0.01,position['z']+sliderBaseScaling['z']/2),
+                new BABYLON.Vector3(position['x'],sliderBase.position.y+sliderBaseScaling['y']/2+0.01,position['z']-sliderBaseScaling['z']/2),
             ]
 
             const midLine = BABYLON.MeshBuilder.CreateLines("midLine",{points:points});
             midLine.color = new BABYLON.Color3(1,0,0);
             sliderBaseMat.diffuseColor = new BABYLON.Color3(0,0,0);
             sliderBase.material = sliderBaseMat;
-            sliderBase.position = new BABYLON.Vector3(position['x'],base.scaling.y/2,position['z']);
-            sliderBase.scaling = sliderBaseScaling;
+            
 
 
             const sliderButton = new BABYLON.MeshBuilder.CreateBox("sliderButton",{});
             const sliderButtonMat = new BABYLON.StandardMaterial("sliderButtonMat");
             const sliderButtonScaling = new BABYLON.Vector3(1,0.2,1);
 
-            const maxValue = (orientation == 'vertical')? position['z']-sliderButton.scaling['z']/2+(sliderBase.scaling['z'])/2:position['x']-sliderButton.scaling['x']/2+(sliderBase.scaling['x'])/2
-            const minValue = (orientation == 'vertical')? position['z']+sliderButton.scaling['z']/2-(sliderBase.scaling['z'])/2:position['x']+sliderButton.scaling['x']/2-(sliderBase.scaling['x'])/2
+            const minValue = (orientation == 'vertical')? position['z']-sliderButton.scaling['z']/2+(sliderBase.scaling['z'])/2:position['x']-sliderButton.scaling['x']/2+(sliderBase.scaling['x'])/2
+            const maxValue = (orientation == 'vertical')? position['z']+sliderButton.scaling['z']/2-(sliderBase.scaling['z'])/2:position['x']+sliderButton.scaling['x']/2-(sliderBase.scaling['x'])/2
             const midValue = (orientation == 'vertical')? position['z']:position['x']
             const interval = (maxValue+sliderButtonScaling['x']/2-midValue)/2
             
@@ -231,21 +226,21 @@
              })
             pointerDragBehavior.validateDrag = (targetPosition)=>{
                 if(orientation == 'vertical'){
-                    if(targetPosition.z < minValue){
+                    if(targetPosition.z > minValue){
                         targetPosition.z = minValue
                     }
                     
-                    if(targetPosition.z > maxValue){
+                    if(targetPosition.z < maxValue){
                         return false
                     }else{
                         return true
                     }
             } else {
-                if(targetPosition.x < minValue){
+                if(targetPosition.x > minValue){
                         targetPosition.x = minValue
                     }
                     
-                    if(targetPosition.x > maxValue){
+                    if(targetPosition.x < maxValue){
                         return false
                     }else{
                         return true
@@ -280,8 +275,8 @@
 
         }
 
-        function generateSequenceButton(position, scaling, scene){
-            const base = generateBase(scaling,position,'diagonal');
+        function generateSequenceButton(position, scaling, scene,name){
+            const base = generateBase(scaling,position,'diagonal',name);
             const redButton = new BABYLON.MeshBuilder.CreateBox('redButton',{});
             const greenButton = new BABYLON.MeshBuilder.CreateBox('greenButton',{});
             const yellowButton = new BABYLON.MeshBuilder.CreateBox('yellowButton',{});
@@ -329,10 +324,32 @@
                     new BABYLON.ExecuteCodeAction(
                         BABYLON.ActionManager.OnPickTrigger,
                         function(){
+                            scene.registerBeforeRender(sequenceButtonCallback);
                             if(userSequence.includes(color) == false){
                                 buttonmat.diffuseColor = newColor;
                                 userSequence.push(color);
                                 userSequence = submitSequenceResult(userSequence, sequenceButtonMat);
+                            }
+
+                            function sequenceButtonCallback(){
+                                if(button.position.y > 0.3){
+                                    button.position.y -= 0.01;
+                                } else{
+                                    if(userSequence.length == 0){
+                                        scene.registerBeforeRender(sequenceButtonCallback2);
+                                    }
+                                    scene.unregisterBeforeRender(sequenceButtonCallback);
+                                }
+                            }
+                            function sequenceButtonCallback2(){
+                                for(let i = 0; i < sequenceButton.length; i++){
+                                    if(sequenceButton[i].position.y < 0.5){
+                                        sequenceButton[i].position.y += 0.01
+                                    }
+                                }
+                                if(sequenceButton[0].position.y == 0.5 && sequenceButton[1].position.y == 0.5 && sequenceButton[2].position.y == 0.5 && sequenceButton[3].position.y == 0.5){
+                                    scene.unregisterBeforeRender(sequenceButtonCallback2);
+                                }
                             }
                         }
                     )
@@ -358,8 +375,8 @@
             } else {return userSequence;}
         }
         
-        function generateLever(position, scaling, scene, orientation){
-            const base = generateBase(scaling,position,orientation);
+        function generateLever(position, scaling, scene, orientation,name){
+            const base = generateBase(scaling,position,orientation,name);
             const lever = new BABYLON.MeshBuilder.CreateBox('lever',{});
             const leverMat = new BABYLON.StandardMaterial('leverMat');
             const leverScaling = new BABYLON.Vector3(3,0.4,1);
@@ -418,8 +435,8 @@
             onHover(lever,leverMat,'blue');
         }
         
-        function generateRotatingDial(position, scaling,scene,camera){
-            const base = generateBase(scaling,position,'diagonal');
+        function generateRotatingDial(position, scaling,scene,camera,name){
+            const base = generateBase(scaling,position,'diagonal',name);
             const dialBase = new BABYLON.MeshBuilder.CreateCylinder("dialBase",{})
             const dialPointer = new BABYLON.MeshBuilder.CreateBox("dialPointer",{});
             const dialPointerScaling = new BABYLON.Vector3(2.3*scaling,0.5,0.5*scaling);
@@ -529,8 +546,8 @@
             }
         }
         
-        function generateJoyStick(position, scaling, scene){
-            const base = generateBase(scaling, position, 'diagonal');
+        function generateJoyStick(position, scaling, scene,name){
+            const base = generateBase(scaling, position, 'diagonal',name);
             const joyStickBase = new BABYLON.MeshBuilder.CreateBox('joyStickBase',{});
             const joyStickBaseMat = new BABYLON.StandardMaterial('joyStickBaseMat');
             const joyStickBaseScaling = new BABYLON.Vector3(3*scaling,0.1,3*scaling);
@@ -694,8 +711,8 @@
             }
         }
 
-        function generateKeyPad(position, scaling, scene){
-            const base = generateBase(scaling, position, 'diagonal');
+        function generateKeyPad(position, scaling, scene,name){
+            const base = generateBase(scaling, position, 'diagonal',name);
             const key1 = new BABYLON.MeshBuilder.CreateBox('key1',{});
             const key2 = new BABYLON.MeshBuilder.CreateBox('key2',{});
             const key3 = new BABYLON.MeshBuilder.CreateBox('key3',{});
@@ -704,7 +721,7 @@
             const key6 = new BABYLON.MeshBuilder.CreateBox('key6',{});
             const key7 = new BABYLON.MeshBuilder.CreateBox('key7',{});
             const key8 = new BABYLON.MeshBuilder.CreateBox('key8',{});
-            const key9 = new BABYLON.MeshBuilder.CreateBox('key9',{});
+            const key9 = new BABYLON.MeshBuilder.CreateBox('key9',{});   
             const keySubmit = new BABYLON.MeshBuilder.CreateBox('keySubmit',{});
             const keyDelete = new BABYLON.MeshBuilder.CreateBox('keyDelete',{});
             const keyCancel = new BABYLON.MeshBuilder.CreateBox('keyCancel',{});
@@ -764,6 +781,18 @@
                 }
 
             }
+            const ghostkey1 = new BABYLON.MeshBuilder.CreateBox('ghostkey1',{});
+            const ghostkey2 = new BABYLON.MeshBuilder.CreateBox('ghostkey2',{});
+            const ghostkey3 = new BABYLON.MeshBuilder.CreateBox('ghostkey3',{});
+            const ghostkey4 = new BABYLON.MeshBuilder.CreateBox('ghostkey4',{});
+            const ghostkey = [ghostkey1,ghostkey2,ghostkey3,ghostkey4];
+            ghostkey1.position = new BABYLON.Vector3(key1.position['x'],0,key1.position['z']);
+            ghostkey2.position = new BABYLON.Vector3(key2.position['x'],0,key2.position['z']);
+            ghostkey3.position = new BABYLON.Vector3(key3.position['x'],0,key3.position['z']);
+            ghostkey4.position = new BABYLON.Vector3(keyDelete.position['x'],0,keyDelete.position['z']);
+            for(let i = 0; i < ghostkey.length;i++){
+                ghostkey[i].scaling = keyScaling;
+            }
             onHover(keys[9],keyMat[9],'yellow');
             onHover(keys[10],keyMat[10],'red');
             onHover(keys[11],keyMat[11],'green');
@@ -785,15 +814,12 @@
             const display2 = BABYLON.Mesh.CreatePlane('display2');
             const display3 = BABYLON.Mesh.CreatePlane('display3');
             const display4 = BABYLON.Mesh.CreatePlane('display4');
-        
-            display1.parent = key1;
-            display2.parent = key2;
-            display3.parent = key3;
-            display4.parent = keyDelete;
+    
             const displays = [display1, display2, display3, display4];
             for(let i = 0; i<displays.length; i++){
+                displays[i].parent = ghostkey[i];
                 displays[i].rotation = new BABYLON.Vector3(Math.PI/2, Math.PI, 0);
-                displays[i].position = new BABYLON.Vector3(0,displayBackground.position.y/2,-1.5-0.1*scaling);
+                displays[i].position = new BABYLON.Vector3(0,1.8,-1.5-0.1*scaling);
                 initTextBoxToPlane(displays[i]);
             }
 
@@ -805,40 +831,64 @@
                 advancedTexture.addControl(textBox);
                 textBoxes.push(textBox);
             }
-    
+            let downFlag = false;
             function initKeyPadAction(mesh, value){
                 mesh.actionManager.registerAction(
                     new BABYLON.ExecuteCodeAction(
                         BABYLON.ActionManager.OnPickTrigger,
                         function(){
-                            if(value == 'Submit'){
-                                sequence = submitKeyPadSequence(sequence);
-                                updateTextBox(sequence,textBoxes)
-                            }
-
-                            else if(value == 'Delete'){
-                                if(sequence.length>=1){
-                                    sequence.pop()
+                            if(downFlag == false){
+                                scene.registerBeforeRender(keypadCallback1);
+                                if(value == 'Submit'){
+                                    sequence = submitKeyPadSequence(sequence);
                                     updateTextBox(sequence,textBoxes)
                                 }
+
+                                else if(value == 'Delete'){
+                                    if(sequence.length>=1){
+                                        sequence.pop()
+                                        updateTextBox(sequence,textBoxes)
+                                    }
+                                }
+
+                                else if (value == 'Cancel'){
+                                    sequence = []
+                                    updateTextBox(sequence,textBoxes)
+                                }
+
+                                else{
+                                    if(sequence.length<4){
+                                    sequence.push(value);
+                                    updateTextBox(sequence,textBoxes)
+                                    }
+                                }
+                                
                             }
 
-                            else if (value == 'Cancel'){
-                                sequence = []
-                                updateTextBox(sequence,textBoxes)
-                            }
-
-                            else{
-                                if(sequence.length<4){
-                                sequence.push(value);
-                                updateTextBox(sequence,textBoxes)
+                            function keypadCallback1(){
+                                downFlag = true;
+                                if(mesh.position.y > 0.15){
+                                    mesh.position.y -= 0.01;
+                                } else{
+                                    scene.registerBeforeRender(keypadCallback2);
+                                    scene.unregisterBeforeRender(keypadCallback1);
                                 }
                             }
-                            
+
+                            function keypadCallback2(){
+                                if(mesh.position.y < 0.5){
+                                    mesh.position.y += 0.01;
+                                } else{
+                                    downFlag = false;
+                                    scene.unregisterBeforeRender(keypadCallback2);
+                                }
+                            }
                         }
                     )
                 )
             }
+
+            
 
             
             
@@ -859,6 +909,118 @@
                     textBoxes[i].text = "";
                 }
             }
+        }
+
+        function generateToggleButton(position,scaling,scene,orientation,name){  
+            const base = generateBase(scaling, position, orientation,name);
+            const button1 = new BABYLON.MeshBuilder.CreateBox('button1',{});
+            const button2 = new BABYLON.MeshBuilder.CreateBox('button2',{});
+            const button3 = new BABYLON.MeshBuilder.CreateBox('button3',{});
+            const button1Mat = new BABYLON.StandardMaterial('button1Mat');
+            const button2Mat = new BABYLON.StandardMaterial('button2Mat');
+            const button3Mat = new BABYLON.StandardMaterial('button3Mat');
+            button1Mat.diffuseColor = new BABYLON.Color3(0.6,0,0);
+            button2Mat.diffuseColor = new BABYLON.Color3(0,0.6,0);
+            button3Mat.diffuseColor = new BABYLON.Color3(0,0,0.6);
+            const colors = [new BABYLON.Color3(0.6,0,0), new BABYLON.Color3(0,0.6,0), new BABYLON.Color3(0,0,0.6), new BABYLON.Color3(0.6,0.6,0), new BABYLON.Color3(0.6,0,0.6)];
+            const buttonScaling = new BABYLON.Vector3(2,0.5,2);
+            const buttons = [button1,button2,button3];
+            const buttonMats = [button1Mat, button2Mat, button3Mat];
+            let positions = (orientation == 'vertical')? [
+                new BABYLON.Vector3(position['x'],base.scaling.y/2,position['z']-buttonScaling['z']),
+                new BABYLON.Vector3(position['x'],base.scaling.y/2,position['z']),
+                new BABYLON.Vector3(position['x'],base.scaling.y/2,position['z']+buttonScaling['z'])
+            ] : [
+            new BABYLON.Vector3(position['x']-buttonScaling['x'],base.scaling.y/2,position['z']),
+                new BABYLON.Vector3(position['x'],base.scaling.y/2,position['z']),
+                new BABYLON.Vector3(position['x']+buttonScaling['x'],base.scaling.y/2,position['z'])
+            ]
+            if(scaling == 3){
+                const button4 = new BABYLON.MeshBuilder.CreateBox('button4',{});
+                const button5 = new BABYLON.MeshBuilder.CreateBox('button5',{});
+                const button4Mat = new BABYLON.StandardMaterial('button4Mat');
+                const button5Mat = new BABYLON.StandardMaterial('button5Mat');
+                button4Mat.diffuseColor = new BABYLON.Color3(0.6,0.6,0);
+                button5Mat.diffuseColor = new BABYLON.Color3(0.6,0,0.6);
+                buttons.push(button4);
+                buttons.push(button5);
+                buttonMats.push(button4Mat);
+                buttonMats.push(button5Mat);
+
+                positions = (orientation == 'vertical')? [
+                new BABYLON.Vector3(position['x'],base.scaling.y/2,position['z']-2*buttonScaling['z']),
+                new BABYLON.Vector3(position['x'],base.scaling.y/2,position['z']-buttonScaling['z']),
+                new BABYLON.Vector3(position['x'],base.scaling.y/2,position['z']),
+                new BABYLON.Vector3(position['x'],base.scaling.y/2,position['z']+buttonScaling['z']),
+                new BABYLON.Vector3(position['x'],base.scaling.y/2,position['z']+2*buttonScaling['z'])
+            ] : [
+                new BABYLON.Vector3(position['x']-2*buttonScaling['x'],base.scaling.y/2,position['z']),
+                new BABYLON.Vector3(position['x']-buttonScaling['x'],base.scaling.y/2,position['z']),
+                new BABYLON.Vector3(position['x'],base.scaling.y/2,position['z']),
+                new BABYLON.Vector3(position['x']+buttonScaling['x'],base.scaling.y/2,position['z']),
+                new BABYLON.Vector3(position['x']+2*buttonScaling['x'],base.scaling.y/2,position['z'])
+            ]
+                button4.actionManager = new BABYLON.ActionManager(scene);
+                button5.actionManager = new BABYLON.ActionManager(scene);
+                initToggleButtonAction(button4,button4Mat,'yellow');
+                initToggleButtonAction(button5,button5Mat,'purple');
+            }
+            for(let i = 0; i < buttons.length; i++){
+                buttons[i].scaling = buttonScaling;
+                buttons[i].position = positions[i];
+                buttons[i].material = buttonMats[i];
+                if(i <3){buttons[i].actionManager = new BABYLON.ActionManager(scene);}
+            }
+            
+            initToggleButtonAction(button1,button1Mat,'red');
+            initToggleButtonAction(button2,button2Mat,'green');
+            initToggleButtonAction(button3,button3Mat,'blue');
+
+            function initToggleButtonAction(mesh, meshMat, color){
+                let newColor = new BABYLON.Color3(0,0,0);
+                if(color == 'red'){
+                    newColor = new BABYLON.Color3(1,0,0);
+                } else if(color == 'blue'){
+                    newColor = new BABYLON.Color3(0,0,1);
+                } else if(color == 'green'){
+                    newColor = new BABYLON.Color3(0,1,0);
+                } else if(color == 'yellow'){
+                    newColor = new BABYLON.Color3(1,1,0);
+                } else{newColor = new BABYLON.Color3(1,0,1);}
+
+                mesh.actionManager.registerAction(
+                    new BABYLON.ExecuteCodeAction(
+                        BABYLON.ActionManager.OnPickTrigger,
+                        function(){
+                            console.log(color);
+                            meshMat.diffuseColor = newColor;
+                            scene.registerBeforeRender(toggleButtonCallback);
+                            for(let i = 0;i<buttonMats.length;i++){
+                                if(buttonMats[i] != meshMat){
+                                    buttonMats[i].diffuseColor = colors[i]
+                                }
+                            }
+
+                            function toggleButtonCallback(){
+                                for(let i = 0; i < buttons.length;i++){
+                                    if(buttons[i] != mesh){
+                                        if(buttons[i].position.y < 0.5){
+                                            buttons[i].position.y += 0.01
+                                        }
+                                    }
+                                }
+                                if(mesh.position.y > 0.3){
+                                    mesh.position.y -= 0.01;
+                                } else {
+                                    scene.unregisterBeforeRender(toggleButtonCallback);
+                                }
+                                
+                            }
+                        }
+                    )
+                )
+            }
+
         }
 
         function onHover(mesh, material, color){
@@ -904,29 +1066,148 @@
             );
         }
         
-        function generateBaseBig(){
-            const base = new BABYLON.MeshBuilder.CreateBox("box",{width:15,depth:15});
-            const points1 = [
-                new BABYLON.Vector3(-7.5,0.51,2.5),
-                new BABYLON.Vector3(7.5,0.51,2.5),
-                new BABYLON.Vector3(7.5,0.51,-2.5),
-                new BABYLON.Vector3(-7.5,0.51,-2.5),
-                ];
-            points1.push(points1[0]);
-            const line1 = BABYLON.MeshBuilder.CreateLines("lines1",{points:points1});
-            line1.color = new BABYLON.Color3(0,0,0);
+    
+        function generateControlPanel(size, scene, camera){
+            const generators = [generateButton,generateSlider,generateSequenceButton,generateLever,generateRotatingDial,generateJoyStick,generateKeyPad,generateToggleButton];
+            function random(max) {
+                min = 1;
+                max = Math.floor(max);
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+            
+            // To determine panel scaling & position
+            panel4 = [[1,2,2,4],[1,1,3,4],[1,2,3,3],[2,2,2,3]];
+            panel5 = [[1,2,2,2,2],[1,1,1,3,3],[1,1,1,2,4],[1,1,2,2,3]];
+            panel6 = [[1,1,1,1,1,4],[1,1,1,2,2,2],[1,1,1,1,2,3]];
 
-            const points2 = [
-                new BABYLON.Vector3(-2.5,0.51,7.5),
-                new BABYLON.Vector3(2.5,0.51,7.5),
-                new BABYLON.Vector3(2.5,0.51,-7.5),
-                new BABYLON.Vector3(-2.5,0.51,-7.5),
-                ];
-            points2.push(points2[0]);
-            const line2 = BABYLON.MeshBuilder.CreateLines("lines2",{points:points2});
-            line2.color = new BABYLON.Color3(0,0,0);
+            // To determine panel type
+            size1 = [0,2,4,5,6,1,3];
+            size2 = [3,1,7];
+            size3 = [3,1,7];
+            size4 = [0,2,4,5,6,3];
 
-            return base;
+            let panelSize
+            let variation
+            if(size ==4){
+                variation = random(panel4.length)-1;
+                panelSize = panel4[variation];
+               
+            } else if(size == 5){
+                variation = random(panel5.length)-1;
+                panelSize = panel5[variation];
+            } else {
+                variation = random(panel6.length)-1;
+                panelSize = panel6[variation];
+            }
+            let panelTypes = [];
+            let panelNames = [];
+            const firstNamePool = ['Rardo', 'Fantago', 'Lingubo', 'Leibniz', 'Phase', 'Alpha', 'Coperni', 'Joseph', 'Mass', 'Bose'];
+            const secondNamePool = ['bar', 'aligner', 'morpher', 'dagger', 'meter', 'sift', 'cycle'];
+            let val;
+            let first,last,final;
+            for(let i = 0; i < panelSize.length; i++){
+                let current = panelSize[i]; 
+                if(current == 1){
+                    val = random(size1.length)-1
+                    panelTypes.push(size1[val])
+                } else if(current == 2){
+                    val = random(size2.length)-1
+                    panelTypes.push(size2[val])
+                } else if(current == 3){
+                    val = random(size3.length)-1
+                    panelTypes.push(size3[val])
+                } else {
+                    val = random(size4.length)-1
+                    panelTypes.push(size4[val])
+                }
+                first = firstNamePool[random(firstNamePool.length)-1];
+                second = secondNamePool[random(secondNamePool.length)-1];
+                final = first + " " + second;
+                panelNames.push(final);
+            }
+            console.log(panelSize);
+            console.log(variation);
+            console.log(panelTypes);
+            const orientations = ['vertical','horizontal'];
+            let orientationCount = 0;
+            let positions;
+            let curOrientations;
+            let special;
+            if(size == 4){
+                switch(variation){
+                    case 0:
+                        positions = [
+                            new BABYLON.Vector3(-5,0,-5),
+                            new BABYLON.Vector3(2.5,0,-5),
+                            new BABYLON.Vector3(5,0,2.5),
+                            new BABYLON.Vector3(-2.5,0,2.5)
+                        ];
+                        curOrientations = ['horizontal','vertical'];
+                        special = [1,2]
+                        generate4(panelTypes,panelSize,positions,curOrientations,panelNames,scene,camera);
+                        break;
+                    case 1: 
+                        positions = [
+                            new BABYLON.Vector3(5,0,5),
+                            new BABYLON.Vector3(0,0,5),
+                            new BABYLON.Vector3(-5,0,0),
+                            new BABYLON.Vector3(2.5,0,-2.5),
+                        ];
+                        curOrientations = ['vertical']
+                        special = [2]
+                        generate4(panelTypes,panelSize,positions,curOrientations,panelNames,scene,camera);
+                        break;
+                    case 2: 
+                        positions = [
+                            new BABYLON.Vector3(5,0,0),
+                            new BABYLON.Vector3(-2.5,0,0),
+                            new BABYLON.Vector3(0,0,-5),
+                            new BABYLON.Vector3(0,0,5),
+                        ];
+                        curOrientations = ['horizontal','horizontal','horizontal']
+                        special = [1,2,3]
+                        generate4(panelTypes,panelSize,positions,curOrientations,panelNames,scene,camera);
+                        break;
+                    case 3:
+                        positions = [
+                            new BABYLON.Vector3(2.5,0,-5),
+                            new BABYLON.Vector3(5,0,2.5),
+                            new BABYLON.Vector3(0,0,2.5),
+                            new BABYLON.Vector3(-5,0,0),
+                        ];
+                        curOrientations = ['horizontal','vertical','vertical','vertical']
+                        special = [0,1,2,3]
+                        generate4(panelTypes,panelSize,positions,curOrientations,panelNames,scene,camera);
+                        break;
+                }
+            }
+
+            function generate4(panelTypes,panelSize,positions,orientations,panelNames,scene,camera){
+                for(let i = 0; i < panelTypes.length;i++){
+                            let scaling = (panelSize[i] > 3)? 2:panelSize[i];
+                            if(panelTypes[i] == 3 || panelTypes[i] == 1 || panelTypes[i] == 7){
+                                if(special.includes(i)){
+                                    generators[panelTypes[i]](positions[i],scaling,scene, curOrientations[orientationCount],panelNames[i]);
+                                    orientationCount += 1;
+                                }
+                                else{
+                                    if(panelTypes[i] == 3){
+                                        generators[panelTypes[i]](positions[i],scaling,scene, 'diagonal',panelNames[i]);
+                                    }
+                                    else{
+                                        generators[panelTypes[i]](positions[i],scaling,scene, orientations[random(orientations.length)-1],panelNames[i]);
+                                    }
+                                }
+                            }
+                            else if(panelTypes[i] == 4){
+                                generators[panelTypes[i]](positions[i],scaling,scene,camera,panelNames[i]);
+                            }
+                             else {
+                                generators[panelTypes[i]](positions[i],scaling,scene,panelNames[i]);
+                            }
+                        }
+            }
+
         }
         // Register a render loop to repeatedly render the scene
         engine.runRenderLoop(function () {
