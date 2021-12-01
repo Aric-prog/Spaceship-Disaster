@@ -1,28 +1,28 @@
 const typeToGeneric = {
     'lever' : 'binary', 
     'button' : 'binary', 
-    'slideBar' : 'numeric', 
+    'slider' : 'numeric', 
     'rotateDial' : 'numeric', 
     'keypad' : 'string', 
-    'colorSequence' : 'string', 
+    'sequenceButton' : 'string', 
     'joystick' : 'numeric', 
     'toggle' : 'binary'
 };
 
 const genericToType = {
     'binary' : ['lever', 'button', 'toggle'],
-    'numeric' : ['slideBar', 'rotateDial', 'joystick'],
-    'string' : ['keypad', 'colorSequence'],
+    'numeric' : ['slider', 'rotateDial', 'joystick'],
+    'string' : ['keypad', 'sequenceButton'],
 }
 
 const numericRange = {
-    'slideBar' : 3,
+    'slider' : 3,
     'rotateDial' : 3,
     'joystick' : 8
 }
 
 const stringRange = {
-    'colorSequence' : 4,
+    'sequenceButton' : 4,
     'keypad' : 9
 }
 

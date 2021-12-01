@@ -6,21 +6,35 @@ const roomAbleToStart = require('../middleware/roomAbleToStart.js')
 const inputTypes = require("./inputTypes.js");
 const { Task } = require("../task.js");
 
-const _ = require('lodash')
+const _ = require('lodash');
+const Panel = require('../panel.js');
 
 module.exports = function(io){
     let taskTimers = {}
-    const panelType = ['lever', 'button', 'slideBar', 'rotateDial', 'keypad', 'sequence', 'joystick', 'toggle']
+    const panelType = ['button', 'slider', 'sequenceButton', 'lever', 'rotatingDial', 'joystick', 'keypad', 'toggle']
     
     const firstNamePool = ['Rardo', 'Fantago', 'Lingubo', 'Leibniz', 'Phase', 'Alpha', 'Coperni', 'Joseph', 'Mass', 'Bose']
     const secondNamePool = ['bar', 'aligner', 'morpher', 'dagger', 'meter', 'sift', 'cycle']
-    
+
+    const arrangementForSize = {
+        4 : [[1, 2, 2, 4], [1, 1, 3, 4], [1, 2, 3, 3], [2, 2, 2, 3]], 
+        5 : [[1, 2, 2, 2, 2], [1, 1, 1, 3, 3], [1, 1, 1, 2, 4], [1, 1, 2, 2, 3]], 
+        6 : [[1, 1, 1, 1, 1, 4], [1, 1, 1, 2, 2, 2], [1, 1, 1, 1, 2, 3]]
+    };
+
+    const panelTypePossibility = {
+        1 : [0, 2, 4, 5, 6, 1, 3], 
+        2 : [3, 1, 7], 
+        3 : [3, 1, 7], 
+        4 : [0, 2, 4, 5, 6, 3]
+    };
+
     function createTask(roomCode, sessionID){
         redisClient.json_get(roomCode, 'playerInfo', function(err, playerInfo){
             if(err){
                 console.log(err);
             } else{
-                playerInfo = JSON.parse(playerInfo)
+                playerInfo = JSON.parse(playerInfo);
                 
                 let giverSID = _.random(Object.keys(playerInfo));
                 let taskName = _.sample(Object.keys(playerInfo.giverSID.panelList));
@@ -36,10 +50,11 @@ module.exports = function(io){
                 }
             }
         })
-    }
+    };
     
     function createPanelForRoom(roomCode){
         let distribution = [4, 5, 5, 6];
+        
         redisClient.json_get(roomCode, '.playerInfo', function(err, playerInfo){
             if(err){
                 console.log(err);
@@ -51,20 +66,25 @@ module.exports = function(io){
                     let amountOfPanel = distribution.pop();
                     let panelList = {};
                     
-                    for(const i of Array(amountOfPanel).keys()){
-                        let firstNameIndex = Math.floor(Math.random() * firstNamePool.length);
-                        let secondNameIndex = Math.floor(Math.random() * secondNamePool.length);
+                    let arrangement = arrangementForSize[amountOfPanel][_.random(arrangementForSize.length)];
+                    for(const size of arrangement){
+                        console.log("sampai")
+                        let panelTypeIndex = _.sample(panelTypePossibility.size);
+
+                        let type = panelType[panelTypeIndex];
+                        let category = inputTypes.typeToGeneric.type;
+                        let name = _.sample(firstNamePool) + _.sample(secondNamePool);
                         
-                        let randomName = firstNamePool[firstNameIndex] + secondNamePool[secondNameIndex];
-                        let type = panelType[Math.floor(Math.random() * panelType.length)];
+                        let taskID = nanoid();
+                        let newPanel = new Panel(name, type, category, size);
                         
-                        panelList[randomName] = type;
+                        panelList[taskID] = newPanel;
                     }
                     redisHelper.addPanelList(roomCode, sid, panelList);
                 };
             }
-        })
-    }
+        });
+    };
 
     function newRound(){
 
@@ -91,7 +111,13 @@ module.exports = function(io){
         })
         socket.on('test', function(){
             let roomCode = socket.roomCode;
-            createTask(roomCode);
+            redisClient.json_get(roomCode, '.playerInfo', function(err, playerInfo){
+                if(err){
+                    console.log(err)
+                } else{
+                    console.log(playerInfo)
+                }
+            })
         })
         socket.on('error', function(err){
             console.log('err : ' + err);

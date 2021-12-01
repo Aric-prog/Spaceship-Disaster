@@ -73,5 +73,9 @@
     function stringEvent(taskName){
         socket.emit("string", $('inputTaskName').val());
     };
+
+    function test(){
+        socket.emit("test");
+    }
 </script>
 </html>

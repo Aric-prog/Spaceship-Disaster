@@ -41,4 +41,4 @@ function endRoom(sessionID){
 
 
 
-module.exports = {addPlayerToRoom, getPlayerRoom, endRoom, addPanelList, createTask, createPanelForRoom}
+module.exports = {addPlayerToRoom, getPlayerRoom, endRoom, addPanelList}
