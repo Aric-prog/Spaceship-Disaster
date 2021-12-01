@@ -28,10 +28,12 @@ function getPlayerRoom(sessionID){
 }
 
 function addPanelList(roomCode, sessionID, panelList){
-    redisClient.json_set(roomCode, 'playerInfo.sid' + sessionID + '.panelList', JSON.stringify(panelList), function(err){
+    redisClient.json_set(roomCode, '.playerInfo.' + sessionID + '.panelList', JSON.stringify(panelList), function(err){
         if(err){
             console.log(err);
-        };
+        } else{
+            console.log('a');
+        }
     });
 }
 

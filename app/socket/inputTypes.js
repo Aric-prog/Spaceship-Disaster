@@ -2,7 +2,7 @@ const typeToGeneric = {
     'lever' : 'binary', 
     'button' : 'binary', 
     'slider' : 'numeric', 
-    'rotateDial' : 'numeric', 
+    'rotatingDial' : 'numeric', 
     'keypad' : 'string', 
     'sequenceButton' : 'string', 
     'joystick' : 'numeric', 
@@ -11,13 +11,13 @@ const typeToGeneric = {
 
 const genericToType = {
     'binary' : ['lever', 'button', 'toggle'],
-    'numeric' : ['slider', 'rotateDial', 'joystick'],
+    'numeric' : ['slider', 'rotatingDial', 'joystick'],
     'string' : ['keypad', 'sequenceButton'],
 }
 
 const numericRange = {
     'slider' : 3,
-    'rotateDial' : 3,
+    'rotatingDial' : 3,
     'joystick' : 8
 }
 

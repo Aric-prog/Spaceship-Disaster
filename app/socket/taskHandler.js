@@ -35,19 +35,29 @@ module.exports = function(io){
                 console.log(err);
             } else{
                 playerInfo = JSON.parse(playerInfo);
+
+                console.log(playerInfo)
+
+                let giverSID = _.sample(Object.keys(playerInfo));
+
+                let randomTask = _.sample(playerInfo[giverSID]['panelList']);
+                let taskName = randomTask['taskName'];
+                let taskType = inputTypes.typeToGeneric[taskName];
                 
-                let giverSID = _.random(Object.keys(playerInfo));
-                let taskName = _.sample(Object.keys(playerInfo.giverSID.panelList));
-                let taskType = inputTypes.typeToGeneric.taskName;
-                
+                console.log(taskType);
                 let newTask = new Task(taskName, giverSID, sessionID, 1, "sample");
-                if(taskType === "string"){
-                    let stringRange = inputTypes.stringRange.taskName;
-                    newTask.extraInfo = _.shuffle(_.range(1, stringRange + 1)).toString().replace(new RegExp(/,/g), "");
-                } else if(taskType === "numeric") {
-                    let numericRange = inputTypes.numericRange.taskName;
-                    newTask.extraInfo = _.sample(_.range(1, (numericRange + 1)))
-                }
+                // if(taskType === "string"){
+                //     let stringRange = inputTypes.stringRange[taskName];
+                //     newTask.extraInfo = _.shuffle(_.range(1, stringRange + 1)).toString().replace(new RegExp(/,/g), "");
+                // } else if(taskType === "numeric") {
+                //     let numericRange = inputTypes.numericRange[taskName];
+
+                //     if(taskName === "" && ){
+                        
+                //     } else{
+                //         newTask.extraInfo = _.sample(_.range(1, (numericRange + 1)));
+                //     }
+                // }
             }
         })
     };
@@ -66,13 +76,12 @@ module.exports = function(io){
                     let amountOfPanel = distribution.pop();
                     let panelList = {};
                     
-                    let arrangement = arrangementForSize[amountOfPanel][_.random(arrangementForSize.length)];
+                    let arrangement = _.sample(arrangementForSize[amountOfPanel]);
                     for(const size of arrangement){
-                        console.log("sampai")
-                        let panelTypeIndex = _.sample(panelTypePossibility.size);
+                        let panelTypeIndex = _.sample(panelTypePossibility[size]);
 
                         let type = panelType[panelTypeIndex];
-                        let category = inputTypes.typeToGeneric.type;
+                        let category = inputTypes.typeToGeneric[type];
                         let name = _.sample(firstNamePool) + _.sample(secondNamePool);
                         
                         let taskID = nanoid();
@@ -111,13 +120,14 @@ module.exports = function(io){
         })
         socket.on('test', function(){
             let roomCode = socket.roomCode;
-            redisClient.json_get(roomCode, '.playerInfo', function(err, playerInfo){
+            redisClient.json_get(roomCode, '.', function(err, playerInfo){
                 if(err){
                     console.log(err)
                 } else{
-                    console.log(playerInfo)
+                    console.log(JSON.parse(playerInfo))
                 }
             })
+            // createTask(roomCode, sessionID);
         })
         socket.on('error', function(err){
             console.log('err : ' + err);
