@@ -40,12 +40,16 @@ module.exports = function(io){
                 console.log(playerInfo)
 
                 let giverSID = _.sample(Object.keys(playerInfo));
-                
+    
                 let randomPanel = _.sample(playerInfo[giverSID]['panelList']);
                 console.log(randomPanel)
 
                 let taskName = randomPanel['taskName'];
                 let taskCategory = inputInfo.typeToGeneric[taskName];
+                
+                // TODO : How to identify panel using task UID??
+                // Approach 1 : find a way to do above
+                // Approach 2 : screw it, each panel can only have one task
                 
                 console.log(taskCategory);
                 let newTask = new Task(taskName, giverSID, sessionID, 1, taskCategory, );
@@ -89,12 +93,16 @@ module.exports = function(io){
                         let name = _.sample(firstNamePool) + _.sample(secondNamePool);
                         
                         let panelID = nanoid();
-                        let newPanel = new Panel(name, type, category, size);
+                        let newPanel = new Panel(name, panelTypeIndex, category, size);
                         
                         panelList[panelID] = newPanel;
                     }
-                    redisHelper.addPanelList(roomCode, sid, panelList);
+                    console.log(JSON.stringify(panelList))
+                    console.log(arrangement)
+                    console.log("\n\n")
+                    redisHelper.addPanelList(roomCode, sid, panelList, arrangement);
                 };
+                
             }
         });
     };

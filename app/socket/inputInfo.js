@@ -15,6 +15,8 @@ const genericToType = {
     'string' : ['keypad', 'sequenceButton'],
 }
 
+const indexTopanelType = ['button', 'slider', 'sequenceButton', 'lever', 'rotatingDial', 'joystick', 'keypad', 'toggle']
+
 const numericRange = {
     'slider' : 3,
     'rotatingDial' : 3,
@@ -26,4 +28,4 @@ const stringRange = {
     'keypad' : 9
 }
 
-module.exports = {typeToGeneric, genericToType, numericRange, stringRange}
+module.exports = {typeToGeneric, genericToType, numericRange, stringRange, indexTopanelType}

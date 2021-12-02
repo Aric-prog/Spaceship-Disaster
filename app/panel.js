@@ -1,7 +1,7 @@
 class Panel{
-    constructor(name, type, category, size){
+    constructor(name, typeIndex, category, size){
         this.name = name;
-        this.type = type;
+        this.typeIndex = typeIndex;
         this.category = category;
         this.size = size;
     }

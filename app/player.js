@@ -5,6 +5,7 @@ class Player {
         this.socketID = socketID;
         this.username = username;
         this.panelList = {};
+        this.panelArrangement = [];
     }
 }
 
