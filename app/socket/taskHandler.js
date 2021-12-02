@@ -40,32 +40,34 @@ module.exports = function(io){
                 console.log(playerInfo)
 
                 let giverSID = _.sample(Object.keys(playerInfo));
-    
                 let randomPanel = _.sample(playerInfo[giverSID]['panelList']);
                 console.log(randomPanel)
 
-                let taskName = randomPanel['taskName'];
-                let taskCategory = inputInfo.typeToGeneric[taskName];
+                let taskName = randomPanel.name;
+                let taskType = inputInfo.indexTopanelType[randomPanel.typeIndex]
+                let taskCategory = randomPanel.category;
                 
                 // TODO : How to identify panel using task UID??
                 // Approach 1 : find a way to do above
                 // Approach 2 : screw it, each panel can only have one task
                 
-                console.log(taskCategory);
                 let newTask = new Task(taskName, giverSID, sessionID, 1, taskCategory, );
                 console.log(newTask)
-                // if(taskCategory === "string"){
-                //     let stringRange = inputInfo.stringRange[taskName];
-                //     newTask.extraInfo = _.shuffle(_.range(1, stringRange + 1)).toString().replace(new RegExp(/,/g), "");
-                // } else if(taskCategory === "numeric") {
-                //     let numericRange = inputInfo.numericRange[taskName];
 
-                //     if(taskName === "" && ){
-                        
-                //     } else{
-                //         newTask.extraInfo = _.sample(_.range(1, (numericRange + 1)));
-                //     }
-                // }
+                if(taskCategory === "string"){
+                    let stringRange = inputInfo.stringRange[taskName];
+                    newTask.extraInfo = _.shuffle(_.range(1, stringRange + 1)).toString().replace(new RegExp(/,/g), "");
+                } else if(taskCategory === "numeric") {
+                    let numericRange = inputInfo.numericRange[taskName];
+                    if(taskType === "slider" && randomPanel.size >= 2){
+                        numericRange = 5;
+                    }
+                    newTask.extraInfo = _.sample(_.range(1, (numericRange + 1)));
+                }
+
+                const callback = function(){io.to(roomCode).emit('newTask', JSON.stringify(newTask))};
+                taskWithKey = {[taskCategory] : newTask};
+                redisHelper.addTask(roomCode, newTask, callback);
             }
         })
     };
@@ -97,9 +99,6 @@ module.exports = function(io){
                         
                         panelList[panelID] = newPanel;
                     }
-                    console.log(JSON.stringify(panelList))
-                    console.log(arrangement)
-                    console.log("\n\n")
                     redisHelper.addPanelList(roomCode, sid, panelList, arrangement);
                 };
                 

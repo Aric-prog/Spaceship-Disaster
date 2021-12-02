@@ -43,6 +43,9 @@
     socket.on("joinSuccess", function(){
         alert("succesfully joined room")
     })
+    socket.on("newTask", function(newTask){
+        console.log(JSON.stringify(newTask))
+    })
     socket.on("start", function(){
         alert("game started")
     })

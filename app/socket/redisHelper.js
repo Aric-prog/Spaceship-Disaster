@@ -44,10 +44,20 @@ function addPanelList(roomCode, sessionID, panelList, arrangement){
     })
 }
 
+function addTask(roomCode, task, callback){
+    redisClient.json_set(roomCode, '.taskList', JSON.stringify(task), function(err){
+        if(err){
+            console.log(err);
+        } else{
+            callback();
+        }
+    })
+}
+
 function endRoom(sessionID){
     // Get client room here and posts relevant data on database
 }
 
 
 
-module.exports = {addPlayerToRoom, getPlayerRoom, endRoom, addPanelList}
+module.exports = {addPlayerToRoom, getPlayerRoom, endRoom, addPanelList, addTask}
