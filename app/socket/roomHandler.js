@@ -1,10 +1,12 @@
 const { customAlphabet } = require("nanoid");
 const nanoid = customAlphabet("123456789ABCDEFGHIJKLMNOPRSTUVWXYZ", 6);
-const Room = require('../room.js')
 const redisHelper = require("./redisHelper.js")
 const { redisClient } = require("../redis.js");
-const Player = require("../player.js");
 const roomAbleToStart = require("../middleware/roomAbleToStart.js");
+
+const Task = require('../task.js')
+const Room = require('../room.js')
+const Player = require("../player.js");
 
 const mainTimers = {}
 module.exports = function(io){

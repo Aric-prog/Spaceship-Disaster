@@ -2,11 +2,11 @@ const { nanoid } = require('nanoid');
 const redisHelper = require('./redisHelper.js')
 const { redisClient } = require('../redis.js')
 const roomAbleToStart = require('../middleware/roomAbleToStart.js')
-
-const inputTypes = require("./inputTypes.js");
-const { Task } = require("../task.js");
-
 const _ = require('lodash');
+
+const inputInfo = require("./inputInfo.js");
+
+const Task = require("../task.js");
 const Panel = require('../panel.js');
 
 module.exports = function(io){
@@ -34,23 +34,27 @@ module.exports = function(io){
             if(err){
                 console.log(err);
             } else{
+                // When generating tasks, make sure that the task is unique to the panel
                 playerInfo = JSON.parse(playerInfo);
 
                 console.log(playerInfo)
 
                 let giverSID = _.sample(Object.keys(playerInfo));
-
-                let randomTask = _.sample(playerInfo[giverSID]['panelList']);
-                let taskName = randomTask['taskName'];
-                let taskType = inputTypes.typeToGeneric[taskName];
                 
-                console.log(taskType);
-                let newTask = new Task(taskName, giverSID, sessionID, 1, "sample");
-                // if(taskType === "string"){
-                //     let stringRange = inputTypes.stringRange[taskName];
+                let randomPanel = _.sample(playerInfo[giverSID]['panelList']);
+                console.log(randomPanel)
+
+                let taskName = randomPanel['taskName'];
+                let taskCategory = inputInfo.typeToGeneric[taskName];
+                
+                console.log(taskCategory);
+                let newTask = new Task(taskName, giverSID, sessionID, 1, taskCategory, );
+                console.log(newTask)
+                // if(taskCategory === "string"){
+                //     let stringRange = inputInfo.stringRange[taskName];
                 //     newTask.extraInfo = _.shuffle(_.range(1, stringRange + 1)).toString().replace(new RegExp(/,/g), "");
-                // } else if(taskType === "numeric") {
-                //     let numericRange = inputTypes.numericRange[taskName];
+                // } else if(taskCategory === "numeric") {
+                //     let numericRange = inputInfo.numericRange[taskName];
 
                 //     if(taskName === "" && ){
                         
@@ -81,13 +85,13 @@ module.exports = function(io){
                         let panelTypeIndex = _.sample(panelTypePossibility[size]);
 
                         let type = panelType[panelTypeIndex];
-                        let category = inputTypes.typeToGeneric[type];
+                        let category = inputInfo.typeToGeneric[type];
                         let name = _.sample(firstNamePool) + _.sample(secondNamePool);
                         
-                        let taskID = nanoid();
+                        let panelID = nanoid();
                         let newPanel = new Panel(name, type, category, size);
                         
-                        panelList[taskID] = newPanel;
+                        panelList[panelID] = newPanel;
                     }
                     redisHelper.addPanelList(roomCode, sid, panelList);
                 };
@@ -127,7 +131,7 @@ module.exports = function(io){
                     console.log(JSON.parse(playerInfo))
                 }
             })
-            // createTask(roomCode, sessionID);
+            createTask(roomCode, sessionID);
         })
         socket.on('error', function(err){
             console.log('err : ' + err);
