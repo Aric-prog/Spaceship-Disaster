@@ -53,14 +53,14 @@
             camera.attachControl(canvas,true);
             camera.setPosition(new BABYLON.Vector3(0, 20, 0));
             const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0));
-            generateControlPanel(4,scene,camera);
-    
+            let panels = JSON.parse('{"wToQpQTf3VdLMbtmD95KK":{"name":"Alphacycle","typeIndex":3,"category":"binary","size":1},"_TO-Vz6gjMqjiVYmBqNgC":{"name":"Fantagobar","typeIndex":2,"category":"string","size":1},"Pr-sCwCkXYFjZJ-CZc942":{"name":"Bosemorpher","typeIndex":2,"category":"string","size":1},"XV8KHq49NbxIU6d7Lux7F":{"name":"Rardocycle","typeIndex":3,"category":"binary","size":1},"gklI5Ew_038uCHD2KuCGg":{"name":"Massmorpher","typeIndex":7,"category":"binary","size":2},"p_fwB1G50_roaEwDrhKea":{"name":"Fantagomorpher","typeIndex":7,"category":"binary","size":3}}')
+            generateControlPanel(panels,[ 1, 1, 1, 1, 2, 3 ],scene,camera);
             return scene;
         };
 
         const scene = createScene(); //Call the createScene function
         
-        function generateButton(position, scaling, scene, name){
+        function generateButton(position, scaling, scene, name, uid){
             const base = generateBase(scaling,position,'diagonal',name);
             const button = new BABYLON.MeshBuilder.CreateCylinder("button",{});
             const buttonMat = new BABYLON.StandardMaterial("buttonMat");
@@ -76,7 +76,7 @@
                 new BABYLON.ExecuteCodeAction(
                     BABYLON.ActionManager.OnPickTrigger,
                     function () {
-                        console.log('cum');
+                        console.log(['cum',name,uid]);
                         scene.registerBeforeRender(buttonCallback);
                     }
                 )
@@ -146,7 +146,7 @@
             return base;
         }
 
-        function generateSlider(position, scaling, scene, orientation,name){
+        function generateSlider(position, scaling, scene, orientation,name,uid){
             const base = generateBase(scaling, position, orientation,name);
             const sliderBase = new BABYLON.MeshBuilder.CreateBox("sliderBase",{});
             const sliderBaseMat = new BABYLON.StandardMaterial("sliderBaseMat");
@@ -221,7 +221,7 @@
             pointerDragBehavior.onDragEndObservable.add((event)=>{
                 let sliderPos = (orientation == 'vertical')? Math.round((sliderButton.position['z'])*10)/10 : Math.round(sliderButton.position['x']*10)/10;
                 //console.log(sliderPos)
-                sliderThresholdCheck(sliderPos,scaling,maxValue,minValue, midValue,interval);
+                sliderThresholdCheck(sliderPos,scaling,maxValue,minValue, midValue,interval,name,uid);
                 //console.log(event);
              })
             pointerDragBehavior.validateDrag = (targetPosition)=>{
@@ -249,33 +249,33 @@
             }
         }
 
-        function sliderThresholdCheck(sliderPos, scaling, maxValue, minValue, midValue, interval){
+        function sliderThresholdCheck(sliderPos, scaling, maxValue, minValue, midValue, interval,name,uid){
             const offSet = 0.2;
             
             if(sliderPos <= midValue+offSet && sliderPos >= midValue-offSet){
-                console.log('mid');
+                console.log(['mid',name,uid]);
             }
 
             else if(sliderPos == minValue){
-                console.log('min')
+                console.log(['min',name,uid])
             }
 
             else if(sliderPos == maxValue){
-                console.log('max')
+                console.log(['max',name,uid])
             }
 
             else if(scaling != 1){
                 if(sliderPos <= midValue+offSet+interval && sliderPos >= midValue+interval-offSet){
-                    console.log('mid-max')
+                    console.log(['mid-max',name,uid])
                 }
                 if(sliderPos <= midValue+offSet-interval && sliderPos >= midValue-interval-offSet){
-                    console.log('mid-min')
+                    console.log(['mid-min',name,uid])
                 }
             }
 
         }
 
-        function generateSequenceButton(position, scaling, scene,name){
+        function generateSequenceButton(position, scaling, scene,name,uid){
             const base = generateBase(scaling,position,'diagonal',name);
             const redButton = new BABYLON.MeshBuilder.CreateBox('redButton',{});
             const greenButton = new BABYLON.MeshBuilder.CreateBox('greenButton',{});
@@ -328,7 +328,7 @@
                             if(userSequence.includes(color) == false){
                                 buttonmat.diffuseColor = newColor;
                                 userSequence.push(color);
-                                userSequence = submitSequenceResult(userSequence, sequenceButtonMat);
+                                userSequence = submitSequenceResult(userSequence, sequenceButtonMat,name,uid);
                             }
 
                             function sequenceButtonCallback(){
@@ -362,20 +362,20 @@
             initButtonAction(greenButton,greenButtonMat,'green');
         }
 
-        function submitSequenceResult(userSequence, sequenceButtonMat){
+        function submitSequenceResult(userSequence, sequenceButtonMat,name,uid){
             if(userSequence.length == 4){
                 sequenceButtonMat[0].diffuseColor = new BABYLON.Color3(0.5,0,0);
                 sequenceButtonMat[1].diffuseColor = new BABYLON.Color3(0,0.5,0);
                 sequenceButtonMat[2].diffuseColor = new BABYLON.Color3(0.5,0.5,0);
                 sequenceButtonMat[3].diffuseColor = new BABYLON.Color3(0,0,0.5);
             
-                console.log(userSequence);
+                console.log([userSequence,name,uid]);
                 userSequence = [];
                 return userSequence;
             } else {return userSequence;}
         }
         
-        function generateLever(position, scaling, scene, orientation,name){
+        function generateLever(position, scaling, scene, orientation,name,uid){
             const base = generateBase(scaling,position,orientation,name);
             const lever = new BABYLON.MeshBuilder.CreateBox('lever',{});
             const leverMat = new BABYLON.StandardMaterial('leverMat');
@@ -407,13 +407,13 @@
                         if(leverState == 0){
                             leverState = 1;
                             leverStatusMat.diffuseColor = new BABYLON.Color3(0,1,0);
-                            console.log('yummy');
+                            console.log(['yummy',name,uid]);
                             scene.registerBeforeRender(leverCallback);
                         }
                         else {
                             leverState = 0;
                             leverStatusMat.diffuseColor = new BABYLON.Color3(1,0,0);
-                            console.log('tummy');
+                            console.log(['tummy',name,uid]);
                             scene.registerBeforeRender(leverCallback);
                         }
                     }
@@ -435,7 +435,7 @@
             onHover(lever,leverMat,'blue');
         }
         
-        function generateRotatingDial(position, scaling,scene,camera,name){
+        function generateRotatingDial(position, scaling,scene,camera,name,uid){
             const base = generateBase(scaling,position,'diagonal',name);
             const dialBase = new BABYLON.MeshBuilder.CreateCylinder("dialBase",{})
             const dialPointer = new BABYLON.MeshBuilder.CreateBox("dialPointer",{});
@@ -477,7 +477,7 @@
                         function() {
                             over = false;
                             //console.log((180/Math.PI)*dialPointer.rotation.y)
-                            rotatingDialThresholdCheck(dialPointer.rotation.y);
+                            rotatingDialThresholdCheck(dialPointer.rotation.y,name,uid);
                             camera.attachControl(canvas,true)
                         }
                     )
@@ -488,7 +488,7 @@
                         function() {
                             over = false;
                             //console.log((180/Math.PI)*dialPointer.rotation.y)
-                            rotatingDialThresholdCheck(dialPointer.rotation.y);
+                            rotatingDialThresholdCheck(dialPointer.rotation.y,name,uid);
                             camera.attachControl(canvas,false)
                         }
                     )
@@ -524,29 +524,29 @@
             onHover(dialPointer,dialPointerMat,'blue');   
         }
 
-        function rotatingDialThresholdCheck(rotation){
+        function rotatingDialThresholdCheck(rotation,name,uid){
             const offset = Math.PI*(15/180);
             const min = -0.1;
             const max = Math.PI+0.1;
             const minMid = Math.PI*(60/180);
             const maxMid = Math.PI*(120/180);
             if(rotation > min && rotation < offset){
-                console.log('min')
+                console.log(['min',name,uid])
             }
             else if(rotation > minMid-offset && rotation < minMid+offset){
-                console.log('mid-min')
+                console.log(['mid-min',name,uid])
             }
             
             else if(rotation > maxMid-offset && rotation < maxMid+offset){
-                console.log('mid-max')
+                console.log(['mid-max',name,uid])
             }
             
             else if(rotation > max-offset && rotation < max){
-                console.log('max')
+                console.log(['max',name,uid])
             }
         }
         
-        function generateJoyStick(position, scaling, scene,name){
+        function generateJoyStick(position, scaling, scene,name,uid){
             const base = generateBase(scaling, position, 'diagonal',name);
             const joyStickBase = new BABYLON.MeshBuilder.CreateBox('joyStickBase',{});
             const joyStickBaseMat = new BABYLON.StandardMaterial('joyStickBaseMat');
@@ -607,7 +607,7 @@
             pointerDragBehavior.onDragEndObservable.add((event)=>{
                 let stickPos = {x:Math.round(joyStick.position['x']*100)/100,z:Math.round(joyStick.position['z']*100)/100}
                 //console.log(stickPos);
-                joyStickThresholdCheck(stickPos,boundary,joyStickBase.position,lines)
+                joyStickThresholdCheck(stickPos,boundary,joyStickBase.position,lines,name,uid)
                 //console.log(event);
              })
             pointerDragBehavior.validateDrag = (targetPosition)=>{
@@ -633,7 +633,7 @@
             }
         }
 
-        function joyStickThresholdCheck(stickPos, boundary, position, lines){  
+        function joyStickThresholdCheck(stickPos, boundary, position, lines,name,uid){  
             const offSet = 0.1;
             const xMin = boundary[0];
             const xMax = boundary[1];
@@ -641,7 +641,7 @@
             const zMax = boundary[3];
 
             if((stickPos['x'] > position['x']-offSet && stickPos['x'] < position['x']+offSet) && (stickPos['z'] == zMin || stickPos['z'] <= zMin+offSet)){
-                console.log('north');
+                console.log(['north',name,uid]);
                 lines[2].color = new BABYLON.Color3(1,0,0);
                 lines[0].color = new BABYLON.Color3(1,1,1);
                 lines[1].color = new BABYLON.Color3(1,1,1);
@@ -649,7 +649,7 @@
             }
 
             else if((stickPos['x'] >= position['x']-offSet && stickPos['x'] <= position['x']+offSet) && (stickPos['z'] == zMax || stickPos['z'] >= zMax-offSet)){
-                console.log('south');
+                console.log(['south',name,uid]);
                 lines[2].color = new BABYLON.Color3(1,0,0);
                 lines[0].color = new BABYLON.Color3(1,1,1);
                 lines[1].color = new BABYLON.Color3(1,1,1);
@@ -657,7 +657,7 @@
             }
 
             else if((stickPos['z'] >= position['z']-offSet && stickPos['z'] <= position['z']+offSet) && (stickPos['x'] == xMin || stickPos['x'] <= xMin+offSet)){
-                console.log('east');
+                console.log(['east',name,uid]);
                 lines[3].color = new BABYLON.Color3(1,0,0);
                 lines[0].color = new BABYLON.Color3(1,1,1);
                 lines[1].color = new BABYLON.Color3(1,1,1);
@@ -665,7 +665,7 @@
             }
 
             else if((stickPos['z'] >= position['z']-offSet && stickPos['z'] <= position['z']+offSet) && (stickPos['x'] == xMax || stickPos['x'] >= xMax-offSet)){
-                console.log('west');
+                console.log(['west',name,uid]);
                 lines[3].color = new BABYLON.Color3(1,0,0);
                 lines[0].color = new BABYLON.Color3(1,1,1);
                 lines[1].color = new BABYLON.Color3(1,1,1);
@@ -673,7 +673,7 @@
             }
 
             else if((stickPos['z'] == zMin || stickPos['z'] <= zMin+offSet) && (stickPos['x'] == xMax || stickPos['x'] >= xMax-offSet)){
-                console.log('north-west');
+                console.log(['north-west',name,uid]);
                 lines[0].color = new BABYLON.Color3(1,0,0);
                 lines[1].color = new BABYLON.Color3(1,1,1);
                 lines[2].color = new BABYLON.Color3(1,1,1);
@@ -681,7 +681,7 @@
             }
 
             else if((stickPos['z'] == zMax || stickPos['z'] >= zMax-offSet) && (stickPos['x'] == xMax || stickPos['x'] >= xMax-offSet)){
-                console.log('south-west');
+                console.log(['south-west',name,uid]);
                 lines[1].color = new BABYLON.Color3(1,0,0);
                 lines[0].color = new BABYLON.Color3(1,1,1);
                 lines[2].color = new BABYLON.Color3(1,1,1);
@@ -689,7 +689,7 @@
             }
 
             else if((stickPos['z'] == zMin || stickPos['z'] <= zMin+offSet) && (stickPos['x'] == xMin || stickPos['x'] <= xMin+offSet)){
-                console.log('north-east');
+                console.log(['north-east',name,uid]);
                 lines[1].color = new BABYLON.Color3(1,0,0);
                 lines[0].color = new BABYLON.Color3(1,1,1);
                 lines[2].color = new BABYLON.Color3(1,1,1);
@@ -697,7 +697,7 @@
             }
 
             else if((stickPos['z'] == zMax || stickPos['z'] >= zMax-offSet) && (stickPos['x'] == xMin || stickPos['x'] <= xMin+offSet)){
-                console.log('south-east');
+                console.log(['south-east',name,uid]);
                 lines[0].color = new BABYLON.Color3(1,0,0);
                 lines[1].color = new BABYLON.Color3(1,1,1);
                 lines[2].color = new BABYLON.Color3(1,1,1);
@@ -711,7 +711,7 @@
             }
         }
 
-        function generateKeyPad(position, scaling, scene,name){
+        function generateKeyPad(position, scaling, scene,name,uid){
             const base = generateBase(scaling, position, 'diagonal',name);
             const key1 = new BABYLON.MeshBuilder.CreateBox('key1',{});
             const key2 = new BABYLON.MeshBuilder.CreateBox('key2',{});
@@ -840,7 +840,7 @@
                             if(downFlag == false){
                                 scene.registerBeforeRender(keypadCallback1);
                                 if(value == 'Submit'){
-                                    sequence = submitKeyPadSequence(sequence);
+                                    sequence = submitKeyPadSequence(sequence,name,uid);
                                     updateTextBox(sequence,textBoxes)
                                 }
 
@@ -895,8 +895,8 @@
 
         }
 
-        function submitKeyPadSequence(sequence){
-            console.log(sequence);
+        function submitKeyPadSequence(sequence,name,uid){
+            console.log([sequence,name,uid]);
             sequence = [];
             return sequence;
         }
@@ -911,7 +911,7 @@
             }
         }
 
-        function generateToggleButton(position,scaling,scene,orientation,name){  
+        function generateToggleButton(position,scaling,scene,orientation,name,uid){  
             const base = generateBase(scaling, position, orientation,name);
             const button1 = new BABYLON.MeshBuilder.CreateBox('button1',{});
             const button2 = new BABYLON.MeshBuilder.CreateBox('button2',{});
@@ -992,7 +992,7 @@
                     new BABYLON.ExecuteCodeAction(
                         BABYLON.ActionManager.OnPickTrigger,
                         function(){
-                            console.log(color);
+                            console.log([color,name,uid]);
                             meshMat.diffuseColor = newColor;
                             scene.registerBeforeRender(toggleButtonCallback);
                             for(let i = 0;i<buttonMats.length;i++){
@@ -1066,8 +1066,229 @@
             );
         }
         
-    
-        function generateControlPanel(size, scene, camera){
+        function generateControlPanel(panels, order, scene, camera){
+            const panel4 = {0:[1,2,2,4],1:[1,1,3,4],2:[1,2,3,3],3:[2,2,2,3]};
+            const panel5 = {0:[1,2,2,2,2],1:[1,1,1,3,3],2:[1,1,1,2,4],3:[1,1,2,2,3]};
+            const panel6 = {0:[1,1,1,1,1,4],1:[1,1,1,2,2,2],2:[1,1,1,1,2,3]}
+            const orientations = ['horizontal','vertical'];
+            let panelData = {}; // For communication {uid: name, uid2: name2}
+
+            for(let i in panels){
+                panelData[i] = panels[i]['name'];
+            }
+            let variation;
+            switch(order.length){
+                case 4:
+                    variation = determineVariation(order,panel4);
+                    generatePanel4(panels, variation, scene, camera);
+                    break;
+                case 5:
+                    variation = determineVariation(order,panel5);
+                    generatePanel5(panels, variation, scene, camera);
+                    break;
+                case 6:
+                    variation = determineVariation(order,panel6);
+                    generatePanel6(panels, variation, scene, camera);
+                    break;
+            }
+            function determineVariation(order, variationList){
+                for(let i = 0; i < Object.keys(variationList).length; i++){
+                    let current = variationList[i];
+                    let counter = 0;
+                    for(let j = 0; j < current.length; j++){
+                        if(current[j] == order[counter]){
+                            counter += 1;
+                            if(counter == order.length-1){
+                                return i
+                            }
+                        } 
+                    }
+                }
+            }
+
+            function generatePanel4(panels, variation, scene, camera){
+                let positions, specialCases;
+                switch(variation){
+                    case 0:
+                        positions = [
+                            new BABYLON.Vector3(-5,0,-5),
+                            new BABYLON.Vector3(2.5,0,-5),
+                            new BABYLON.Vector3(5,0,2.5),
+                            new BABYLON.Vector3(-2.5,0,2.5)
+                        ];
+                        specialCases = {1:'horizontal',2:'vertical'};
+                        generatePanelHelper(panels, positions, specialCases, scene, camera);
+                        break;
+                        
+                    case 1:
+                        positions = [
+                            new BABYLON.Vector3(5,0,5),
+                            new BABYLON.Vector3(0,0,5),
+                            new BABYLON.Vector3(-5,0,0),
+                            new BABYLON.Vector3(2.5,0,-2.5),
+                        ];
+                        specialCases = {2:'vertical'};
+                        generatePanelHelper(panels,positions,specialCases,scene,camera);
+                        break;
+                    
+                    case 2: 
+                        positions = [
+                            new BABYLON.Vector3(5,0,0),
+                            new BABYLON.Vector3(-2.5,0,0),
+                            new BABYLON.Vector3(0,0,-5),
+                            new BABYLON.Vector3(0,0,5),
+                        ];
+                        specialCases = {1:'horizontal',2:'horizontal',3:'horizontal'};
+                        generatePanelHelper(panels,positions,specialCases,scene,camera);
+                        break;
+
+                    case 3:
+                        positions = [
+                            new BABYLON.Vector3(2.5,0,-5),
+                            new BABYLON.Vector3(5,0,2.5),
+                            new BABYLON.Vector3(0,0,2.5),
+                            new BABYLON.Vector3(-5,0,0),
+                        ];
+                        specialCases = {0:'horizontal',1:'vertical',2:'vertical',3:'vertical'};
+                        generatePanelHelper(panels,positions,specialCases,scene,camera);
+                        break;
+                }
+            }
+
+            function generatePanel5(panels, variation, scene, camera){
+                let positions, specialCases;
+                switch(variation){
+                    case 0:
+                        positions = [
+                            new BABYLON.Vector3(5,0,-5),
+                            new BABYLON.Vector3(-2.5,0,-5),
+                            new BABYLON.Vector3(2.5,0,0),
+                            new BABYLON.Vector3(2.5,0,5),
+                            new BABYLON.Vector3(-5,0,2.5),
+                        ];
+                        specialCases = {1:'horizontal',2:'horizontal',3:'horizontal',4:'vertical'};
+                        generatePanelHelper(panels, positions, specialCases, scene, camera);
+                        break;
+                        
+                    case 1:
+                        positions = [
+                            new BABYLON.Vector3(5,0,-5),
+                            new BABYLON.Vector3(5,0,0),
+                            new BABYLON.Vector3(5,0,5),
+                            new BABYLON.Vector3(0,0,0),
+                            new BABYLON.Vector3(-5,0,0),
+                        ];
+                        specialCases = {3:'vertical',4:'vertical'};
+                        generatePanelHelper(panels,positions,specialCases,scene,camera);
+                        break;
+                    
+                    case 2: 
+                        positions = [
+                            new BABYLON.Vector3(5,0,-5),
+                            new BABYLON.Vector3(5,0,0),
+                            new BABYLON.Vector3(-5,0,5),
+                            new BABYLON.Vector3(2.5,0,5),
+                            new BABYLON.Vector3(-2.5,0,-2.5),
+                        ];
+                        specialCases = {3:'horizontal'};
+                        generatePanelHelper(panels,positions,specialCases,scene,camera);
+                        break;
+
+                    case 3:
+                        positions = [
+                            new BABYLON.Vector3(5,0,5),
+                            new BABYLON.Vector3(0,0,5),
+                            new BABYLON.Vector3(2.5,0,0),
+                            new BABYLON.Vector3(-5,0,2.5),
+                            new BABYLON.Vector3(0,0,-5),
+                        ];
+                        specialCases = {2:'horizontal',3:'vertical',4:'horizontal'};
+                        generatePanelHelper(panels,positions,specialCases,scene,camera);
+                        break;
+                }
+            }
+
+            function generatePanel6(panels, variation, scene, camera){
+                let positions, specialCases;
+                console.log(variation)
+                switch(variation){
+                    case 0:
+                        positions = [
+                            new BABYLON.Vector3(-5,0,-5),
+                            new BABYLON.Vector3(-5,0,0),
+                            new BABYLON.Vector3(-5,0,5),
+                            new BABYLON.Vector3(0,0,5),
+                            new BABYLON.Vector3(5,0,5),
+                            new BABYLON.Vector3(2.5,0,-2.5),
+                        ];
+                        specialCases = {};
+                        generatePanelHelper(panels, positions, specialCases, scene, camera);
+                        break;
+                        
+                    case 1:
+                        positions = [
+                            new BABYLON.Vector3(5,0,5),
+                            new BABYLON.Vector3(-5,0,0),
+                            new BABYLON.Vector3(-5,0,5),
+                            new BABYLON.Vector3(0,0,2.5),
+                            new BABYLON.Vector3(5,0,-2.5),
+                            new BABYLON.Vector3(-2.5,0,-5),
+                        ];
+                        specialCases = {3:'vertical',4:'vertical',5:'horizontal'};
+                        generatePanelHelper(panels,positions,specialCases,scene,camera);
+                        break;
+                    
+                    case 2: 
+                        positions = [
+                            new BABYLON.Vector3(5,0,5),
+                            new BABYLON.Vector3(5,0,0),
+                            new BABYLON.Vector3(-5,0,0),
+                            new BABYLON.Vector3(0,0,0),
+                            new BABYLON.Vector3(-2.5,0,5),
+                            new BABYLON.Vector3(0,0,-5),
+                        ];
+                        specialCases = {4:'horizontal',5:'horizontal'};
+                        generatePanelHelper(panels,positions,specialCases,scene,camera);
+                        break;
+                }
+            }
+
+            function generatePanelHelper(panels, positions, specialCases, scene, camera){
+                let index = 0
+                const generators = [generateButton,generateSlider,generateSequenceButton,generateLever,generateRotatingDial,generateJoyStick,generateKeyPad,generateToggleButton];
+                for(let i in panels){
+                    let scaling = (panels[i].size > 3)? 2:panels[i].size;
+                    if(panels[i].typeIndex == 3 || panels[i].typeIndex == 1 || panels[i].typeIndex == 7){
+                        if(Object.keys(specialCases).map(Number).includes(index)){
+                            generators[panels[i].typeIndex](positions[index],scaling,scene, specialCases[index],panels[i].name,i);
+                        }
+                        else{
+                            if(panels[i].typeIndex == 3){
+                                generators[panels[i].typeIndex](positions[index],scaling,scene, 'diagonal',panels[i].name,i);
+                            }
+                            else{
+                                generators[panels[i].typeIndex](positions[index],scaling,scene, orientations[random(orientations.length)-1],panels[i].name,i);
+                            }
+                        }
+                    }
+                    else if(panels[i].typeIndex == 4){
+                        generators[panels[i].typeIndex](positions[index],scaling,scene,camera,panels[i].name,i);
+                    }
+                        else {
+                        generators[panels[i].typeIndex](positions[index],scaling,scene,panels[i].name,i);
+                    }
+                    index += 1;
+                }
+            }
+
+            function random(max) {
+                min = 1;
+                max = Math.floor(max);
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+        }
+        
+        function generateControlPanel2(size, scene, camera){
             const generators = [generateButton,generateSlider,generateSequenceButton,generateLever,generateRotatingDial,generateJoyStick,generateKeyPad,generateToggleButton];
             function random(max) {
                 min = 1;
