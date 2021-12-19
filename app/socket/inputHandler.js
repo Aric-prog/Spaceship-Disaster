@@ -1,3 +1,10 @@
+const { redisClient } = require("../redis.js")
+const redisHelper = require("./redisHelper.js")
+
+// TODO : Validate input and get tasks from redis
+// On correct input, server should remove from redis cloud, and add progress to room
+// If false, give penalty to room by reducing timer (make sure to keep track of this timer)
+
 module.exports = function(io){
     // Inputs are divided into
     // - Binary (push x button)
