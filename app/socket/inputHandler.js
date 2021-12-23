@@ -13,9 +13,19 @@ module.exports = function(io){
     // - String (full string inputs like keypad)
 
     io.on("connection", function(socket){
-        const session = socket.handshake.session;    
+        const session = socket.handshake.session; 
+        const sessionID = socket.handshake.sessionID;   
+
+        // const checkRightSID = function(callback){
+        //     redisClient.json_set(function(err){
+        //         // The whole verify process is here
+        //         callback(additionalInfo)
+        //     })
+        // }
+
         socket.on("binary", function(){
-            
+            // 1. You need to query session id to get the player room
+            // 2. YOu need to check the task inside the room itself
         })
         socket.on("numeric", function(){
             

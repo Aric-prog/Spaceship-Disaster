@@ -34,7 +34,8 @@
         <script src="https://preview.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
         <script src="https://preview.babylonjs.com/gui/babylon.gui.min.js"></script>
         <script src="https://preview.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
-
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+        <script src="https://cdn.socket.io/3.1.3/socket.io.min.js" integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh" crossorigin="anonymous"></script>
     </head>
 
    <body>
@@ -76,7 +77,9 @@
                 new BABYLON.ExecuteCodeAction(
                     BABYLON.ActionManager.OnPickTrigger,
                     function () {
-                        console.log(['cum',name,uid]);
+                        console.log(['cum',name, uid]);
+                        // io.emit("binary", [uid]);
+
                         scene.registerBeforeRender(buttonCallback);
                     }
                 )
