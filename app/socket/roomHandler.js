@@ -48,7 +48,6 @@ module.exports = function(io){
                 } else if(playerCountInRoom >= 4){
                     io.to(socket.id).emit("error", "Cannot join a full room.");
                 } else{
-                    console.log(sessionID);
                     redisHelper.addPlayerToRoom(io, roomCode, joiningPlayer, socket);
                 };
             });
@@ -92,29 +91,24 @@ module.exports = function(io){
             // Room start initialize here
             // Generate lists of tasks here
             io.to(roomCode).emit('start');
-            
+            redisHelper.setRoomStartedFlag(roomCode)
             durationOfRoom[roomCode] = 60
             // TODO : Remember the time in the rooms, to be used later for penalties when they fuck up
             const mainTimer = setInterval(function(){
                 durationOfRoom[roomCode] -= 1;
-                io.to(roomCode).emit('timer', timeInSec);
                 if(durationOfRoom[roomCode] <= 0){
                     // Room is die when this happens, don't forget to clear room and stuff here
                     io.to(roomCode).emit('gameOver');
                     redisHelper.endRoom(sessionID);
                     clearInterval(mainTimer);
                 }
+                io.to(roomCode).emit('timer', durationOfRoom[roomCode]);
             }, 1000)
             mainTimers[roomCode] = mainTimer;
         })
 
         socket.on("error", function(err){
-            console.log("err : " + err);
-            if(err.playerRoomNotFound){
-                io.to(socket.id).emit("error", "Player not joined to any room");
-            } else if(err.notEnoughPlayers){
-                io.to(socket.id).emit("error", "Not enough player in room");
-            };
+            io.to(socket.id).emit('error', String(err))
         })
     })   
 }

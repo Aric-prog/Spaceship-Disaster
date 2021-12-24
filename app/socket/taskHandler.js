@@ -51,7 +51,7 @@ module.exports = function(io){
                 // Approach 1 : find a way to do above
                 // Approach 2 : screw it, each panel can only have one task
                 
-                let newTask = new Task(taskName, giverSID, sessionID, 1, taskCategory, );
+                let newTask = new Task(taskName, giverSID, sessionID, 1, taskCategory);
                 console.log(newTask)
 
                 if(taskCategory === "string"){
@@ -117,7 +117,6 @@ module.exports = function(io){
             // Generate panel distribution amount of 4,5,5,6
             
             let roomCode = socket.roomCode;
-            
             // Make this a generic new round function, since the process is the same for new rounds
             redisClient.json_get(roomCode, '.playerInfo', function(err, playerInfo){
                 if(err){
@@ -139,9 +138,6 @@ module.exports = function(io){
                 }
             })
             createTask(roomCode, sessionID);
-        })
-        socket.on('error', function(err){
-            console.log('err : ' + err);
         })
     })
 }
