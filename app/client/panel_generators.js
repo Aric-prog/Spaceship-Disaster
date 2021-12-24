@@ -6,6 +6,7 @@ class Generators {
     generateButton(position, scaling, scene, name, uid){
         const base = this.generateBase(scaling,position,'diagonal',name);
         const button = new BABYLON.MeshBuilder.CreateCylinder("button",{});
+        this.meshList.push(button);
         const buttonMat = new BABYLON.StandardMaterial("buttonMat");
         const buttonScaling = new BABYLON.Vector3(3*scaling,0.5,3*scaling)
         buttonMat.diffuseColor = new BABYLON.Color3(0,0,0.6);
@@ -43,8 +44,10 @@ class Generators {
 
     generateBase(scaling,position,type,name){
         const base = new BABYLON.MeshBuilder.CreateBox("base",{});
+        this.meshList.push(base);
         const baseScaling = new BABYLON.Vector3(5,1,5);
         const textBase = new BABYLON.MeshBuilder.CreateBox("textBase",{});
+        this.meshList.push(textBase);
         textBase.position = position;
         textBase.scaling = new BABYLON.Vector3(5,0.5,5);
         const textBasePlane = BABYLON.Mesh.CreatePlane('textBasePlane');
@@ -85,6 +88,7 @@ class Generators {
             ];
         points.push(points[0]);
         const outline = BABYLON.MeshBuilder.CreateLines("outline",{points:points});
+        this.meshList.push(outline);
         outline.color = new BABYLON.Color3(0,0,0);
         return base;
     }
@@ -92,6 +96,7 @@ class Generators {
     generateSlider(position, scaling, scene, orientation,name,uid){
         const base = this.generateBase(scaling, position, orientation,name);
         const sliderBase = new BABYLON.MeshBuilder.CreateBox("sliderBase",{});
+        this.meshList.push(sliderBase);
         const sliderBaseMat = new BABYLON.StandardMaterial("sliderBaseMat");
         const sliderBaseScaling = new BABYLON.Vector3(1,0.5,1);
         if(orientation == 'vertical'){
@@ -111,6 +116,7 @@ class Generators {
         ]
 
         const midLine = BABYLON.MeshBuilder.CreateLines("midLine",{points:points});
+        this.meshList.push(midLine);
         midLine.color = new BABYLON.Color3(1,0,0);
         sliderBaseMat.diffuseColor = new BABYLON.Color3(0,0,0);
         sliderBase.material = sliderBaseMat;
@@ -118,6 +124,7 @@ class Generators {
 
 
         const sliderButton = new BABYLON.MeshBuilder.CreateBox("sliderButton",{});
+        this.meshList.push(sliderButton);
         const sliderButtonMat = new BABYLON.StandardMaterial("sliderButtonMat");
         const sliderButtonScaling = new BABYLON.Vector3(1,0.2,1);
 
@@ -146,7 +153,9 @@ class Generators {
         ];
 
         const midMaxLine = BABYLON.MeshBuilder.CreateLines("midLine",{points:points1});
+        this.meshList.push(midMaxLine);
         const midMinLine = BABYLON.MeshBuilder.CreateLines("midMinLine",{points:points2})
+        this.meshList.push(midMinLine);
         midMinLine.color = new BABYLON.Color3(1,0,0);
         midMaxLine.color = new BABYLON.Color3(1,0,0);
         }
@@ -220,9 +229,13 @@ class Generators {
     generateSequenceButton(position, scaling, scene,name,uid){
         const base = this.generateBase(scaling,position,'diagonal',name);
         const redButton = new BABYLON.MeshBuilder.CreateBox('redButton',{});
+        this.meshList.push(redButton);
         const greenButton = new BABYLON.MeshBuilder.CreateBox('greenButton',{});
+        this.meshList.push(greenButton);
         const yellowButton = new BABYLON.MeshBuilder.CreateBox('yellowButton',{});
+        this.meshList.push(yellowButton);
         const blueButton = new BABYLON.MeshBuilder.CreateBox('blueButton',{});
+        this.meshList.push(blueButton);
         const sequenceButton = [redButton,greenButton,yellowButton,blueButton];
         const redButtonMat = new BABYLON.StandardMaterial("redButtonMat");
         const greenButtonMat = new BABYLON.StandardMaterial("greenButtonMat");
@@ -321,6 +334,7 @@ class Generators {
         console.log(this)
         const base = this.generateBase(scaling,position,orientation,name);
         const lever = new BABYLON.MeshBuilder.CreateBox('lever',{});
+        this.meshList.push(lever);
         const leverMat = new BABYLON.StandardMaterial('leverMat');
         const leverScaling = new BABYLON.Vector3(3,0.4,1);
         if(orientation == 'diagonal'){
@@ -337,6 +351,7 @@ class Generators {
         lever.scaling = leverScaling;
         lever.rotation.z = Math.PI*(30/180);
         const leverStatus = new BABYLON.MeshBuilder.CreateSphere("sphere", {slice: 0.5, sideOrientation: BABYLON.Mesh.DOUBLESIDE});
+        this.meshList.push(leverStatus);
         const leverStatusMat = new BABYLON.StandardMaterial('leverStatusMat');
         leverStatusMat.diffuseColor = new BABYLON.Color3(1,0,0);
         leverStatus.material = leverStatusMat;
@@ -380,8 +395,10 @@ class Generators {
     
     generateRotatingDial(position, scaling,scene,camera,name,uid){
         const base = this.generateBase(scaling,position,'diagonal',name);
-        const dialBase = new BABYLON.MeshBuilder.CreateCylinder("dialBase",{})
+        const dialBase = new BABYLON.MeshBuilder.CreateCylinder("dialBase",{});
+        this.meshList.push(dialBase);
         const dialPointer = new BABYLON.MeshBuilder.CreateBox("dialPointer",{});
+        this.meshList.push(dialPointer);
         const dialPointerScaling = new BABYLON.Vector3(2.3*scaling,0.5,0.5*scaling);
         const dialBaseScaling = new BABYLON.Vector3(2.3*scaling,0.4,2.3*scaling);
         const dialBaseMat = new BABYLON.StandardMaterial('dialBaseMat');
@@ -492,6 +509,7 @@ class Generators {
     generateJoyStick(position, scaling, scene,name,uid){
         const base = this.generateBase(scaling, position, 'diagonal',name);
         const joyStickBase = new BABYLON.MeshBuilder.CreateBox('joyStickBase',{});
+        this.meshList.push(joyStickBase);
         const joyStickBaseMat = new BABYLON.StandardMaterial('joyStickBaseMat');
         const joyStickBaseScaling = new BABYLON.Vector3(3*scaling,0.1,3*scaling);
         joyStickBaseMat.diffuseColor = new BABYLON.Color3(0,0,0);
@@ -500,6 +518,7 @@ class Generators {
         joyStickBase.scaling = joyStickBaseScaling;
 
         const joyStick = new BABYLON.MeshBuilder.CreateBox('joyStick',{});
+        this.meshList.push(joyStick);
         const joyStickMat = new BABYLON.StandardMaterial('joyStickMat');
         const joyStickScaling = new BABYLON.Vector3(0.7,1,0.7);
         joyStickMat.diffuseColor = new BABYLON.Color3(0,0,0.6);
@@ -528,9 +547,13 @@ class Generators {
         ]
 
         const line1 = BABYLON.MeshBuilder.CreateLines('line1',{points:points1});
+        this.meshList.push(line1);
         const line2 = BABYLON.MeshBuilder.CreateLines('line2',{points:points2});
+        this.meshList.push(line2);
         const line3 = BABYLON.MeshBuilder.CreateLines('line3',{points:points3});
+        this.meshList.push(line3);
         const line4 = BABYLON.MeshBuilder.CreateLines('line4',{points:points4});
+        this.meshList.push(line4);
         line1.color = new BABYLON.Color3(1,1,1);
         line2.color = new BABYLON.Color3(1,1,1);
         line3.color = new BABYLON.Color3(1,1,1);
@@ -656,17 +679,29 @@ class Generators {
     generateKeyPad(position, scaling, scene,name,uid){
         const base = this.generateBase(scaling, position, 'diagonal',name);
         const key1 = new BABYLON.MeshBuilder.CreateBox('key1',{});
+        this.meshList.push(key1);
         const key2 = new BABYLON.MeshBuilder.CreateBox('key2',{});
+        this.meshList.push(key2);
         const key3 = new BABYLON.MeshBuilder.CreateBox('key3',{});
+        this.meshList.push(key3);
         const key4 = new BABYLON.MeshBuilder.CreateBox('key4',{});
+        this.meshList.push(key4);
         const key5 = new BABYLON.MeshBuilder.CreateBox('key5',{});
+        this.meshList.push(key5);
         const key6 = new BABYLON.MeshBuilder.CreateBox('key6',{});
+        this.meshList.push(key6);
         const key7 = new BABYLON.MeshBuilder.CreateBox('key7',{});
+        this.meshList.push(key7);
         const key8 = new BABYLON.MeshBuilder.CreateBox('key8',{});
-        const key9 = new BABYLON.MeshBuilder.CreateBox('key9',{});   
+        this.meshList.push(key8);
+        const key9 = new BABYLON.MeshBuilder.CreateBox('key9',{});
+        this.meshList.push(key9);   
         const keySubmit = new BABYLON.MeshBuilder.CreateBox('keySubmit',{});
+        this.meshList.push(keySubmit);
         const keyDelete = new BABYLON.MeshBuilder.CreateBox('keyDelete',{});
+        this.meshList.push(keyDelete);
         const keyCancel = new BABYLON.MeshBuilder.CreateBox('keyCancel',{});
+        this.meshList.push(keyCancel);
         const keys = [key1,key2,key3,key4,key5,key6,key7,key8,key9,keyDelete,keyCancel,keySubmit];
         const keyScaling = new BABYLON.Vector3(1*scaling, 0.3, 0.7*scaling);
         const key1Mat = new BABYLON.StandardMaterial('key1Mat');
@@ -724,9 +759,13 @@ class Generators {
 
         }
         const ghostkey1 = new BABYLON.MeshBuilder.CreateBox('ghostkey1',{});
+        this.meshList.push(ghostkey1);
         const ghostkey2 = new BABYLON.MeshBuilder.CreateBox('ghostkey2',{});
+        this.meshList.push(ghostkey2);
         const ghostkey3 = new BABYLON.MeshBuilder.CreateBox('ghostkey3',{});
+        this.meshList.push(ghostkey3);
         const ghostkey4 = new BABYLON.MeshBuilder.CreateBox('ghostkey4',{});
+        this.meshList.push(ghostkey4);
         const ghostkey = [ghostkey1,ghostkey2,ghostkey3,ghostkey4];
         ghostkey1.position = new BABYLON.Vector3(key1.position['x'],0,key1.position['z']);
         ghostkey2.position = new BABYLON.Vector3(key2.position['x'],0,key2.position['z']);
@@ -851,8 +890,11 @@ class Generators {
     generateToggleButton(position,scaling,scene,orientation,name,uid){  
         const base = this.generateBase(scaling, position, orientation,name);
         const button1 = new BABYLON.MeshBuilder.CreateBox('button1',{});
+        this.meshList.push(button1);
         const button2 = new BABYLON.MeshBuilder.CreateBox('button2',{});
+        this.meshList.push(button2);
         const button3 = new BABYLON.MeshBuilder.CreateBox('button3',{});
+        this.meshList.push(button3);
         const button1Mat = new BABYLON.StandardMaterial('button1Mat');
         const button2Mat = new BABYLON.StandardMaterial('button2Mat');
         const button3Mat = new BABYLON.StandardMaterial('button3Mat');
@@ -874,7 +916,9 @@ class Generators {
         ]
         if(scaling == 3){
             const button4 = new BABYLON.MeshBuilder.CreateBox('button4',{});
+            this.meshList.push(button4);
             const button5 = new BABYLON.MeshBuilder.CreateBox('button5',{});
+            this.meshList.push(button5);
             const button4Mat = new BABYLON.StandardMaterial('button4Mat');
             const button5Mat = new BABYLON.StandardMaterial('button5Mat');
             button4Mat.diffuseColor = new BABYLON.Color3(0.6,0.6,0);

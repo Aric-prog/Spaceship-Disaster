@@ -58,11 +58,9 @@
             camera.setPosition(new BABYLON.Vector3(0, 20, 0));
             const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0));
             const game = new Game() 
-            let panels = JSON.parse('{"wToQpQTf3VdLMbtmD95KK":{"name":"Alphacycle","typeIndex":3,"category":"binary","size":1},"_TO-Vz6gjMqjiVYmBqNgC":{"name":"Fantagobar","typeIndex":2,"category":"string","size":1},"Pr-sCwCkXYFjZJ-CZc942":{"name":"Bosemorpher","typeIndex":2,"category":"string","size":1},"XV8KHq49NbxIU6d7Lux7F":{"name":"Rardocycle","typeIndex":3,"category":"binary","size":1},"gklI5Ew_038uCHD2KuCGg":{"name":"Massmorpher","typeIndex":7,"category":"binary","size":2},"p_fwB1G50_roaEwDrhKea":{"name":"Fantagomorpher","typeIndex":7,"category":"binary","size":3}}')
-            
-            game.generateControlPanel(panels,[ 1, 1, 1, 1, 2, 3 ],scene,camera);
-           
-            game.testing(scene,camera);
+            let panels = JSON.parse('{"uOyF1qWZ79lDUuvuMd6Yf":{"name":"Bosedagger","typeIndex":2,"category":"string","size":1},"rF2-b-LTArKMRkr6uTQiG":{"name":"Leibnizaligner","typeIndex":0,"category":"binary","size":1},"4zmuMlGQ_ssdqWUxkuBbS":{"name":"Josephmeter","typeIndex":1,"category":"numeric","size":1},"MBZagbY_3jSwYsVnBncGQ":{"name":"Fantagometer","typeIndex":7,"category":"binary","size":2},"9BSLkYYGcyneVTJV1OceO":{"name":"Rardomorpher","typeIndex":3,"category":"binary","size":4}}')
+            game.generateControlPanel(panels,[ 1, 1, 1, 2, 4 ],scene,camera);
+                        
             return scene;
  
         };

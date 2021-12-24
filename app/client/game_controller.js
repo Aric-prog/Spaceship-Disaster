@@ -193,7 +193,6 @@ class Game {
         function generatePanelHelper(panels, positions, specialCases, scene, camera,generators){
             let index = 0
             for(let i in panels){
-                console.log(index)
                 let scaling = (panels[i].size > 3)? 2:panels[i].size;
                 if(panels[i].typeIndex == 3 || panels[i].typeIndex == 1 || panels[i].typeIndex == 7){
                     if(Object.keys(specialCases).map(Number).includes(index)){
@@ -221,21 +220,16 @@ class Game {
         }
 
         function random(max) {
-            min = 1;
-            max = Math.floor(max);
-            return Math.floor(Math.random() * (max - min + 1)) + min;
+            const min = 1;
+            let maxnumber = Math.floor(max);
+            return Math.floor(Math.random() * (maxnumber - min + 1)) + min;
         }
 
     }
 
-    testing(scene,camera){
-        this.generator.generateButton(new BABYLON.Vector3(25,0,25),1,scene,'Button',"jjjjrjr")
-        this.generator.generateSlider(new BABYLON.Vector3(20,0,20),1,scene,'horizontal','Slider','j')
-        this.generator.generateSequenceButton(new BABYLON.Vector3(25,0,30),1,scene,'Sequence button','f')
-        this.generator.generateLever(new BABYLON.Vector3(30,0,25),1,scene,'vertical','lever','l')
-        this.generator.generateRotatingDial(new BABYLON.Vector3(30,0,20),1,scene,camera,'Rotating dial','rd')
-        this.generator.generateJoyStick(new BABYLON.Vector3(30,0,30),1,scene,'Joystick','f')
-        this.generator.generateKeyPad(new BABYLON.Vector3(25,0,20),1,scene,'Keypad','kp')
-        this.generator.generateToggleButton(new BABYLON.Vector3(20,0,27.5),2,scene,'vertical','Toggle button','tb')
+    kurban(){
+        for(let i of this.generator.meshList){
+            i.dispose()
+        }
     }
 }
