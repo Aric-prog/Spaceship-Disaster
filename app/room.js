@@ -5,7 +5,7 @@ class Room {
         this.rounds = 1;
         
         this.teamName = teamName;
-        
+        this.progress = 0;
         // Contains relevant data on all players inside the room
         // Players are identified by their session ID.
         this.playerInfo = {};
