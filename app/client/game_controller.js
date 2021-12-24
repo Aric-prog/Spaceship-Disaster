@@ -7,7 +7,7 @@ class Game {
         const panel4 = {0:[1,2,2,4],1:[1,1,3,4],2:[1,2,3,3],3:[2,2,2,3]};
         const panel5 = {0:[1,2,2,2,2],1:[1,1,1,3,3],2:[1,1,1,2,4],3:[1,1,2,2,3]};
         const panel6 = {0:[1,1,1,1,1,4],1:[1,1,1,2,2,2],2:[1,1,1,1,2,3]}
-        const generators = [this.generator.generateButton, this.generator.generateSlider, this.generator.generateSequenceButton, this.generator.generateLever, this.generator.generateRotatingDial, this.generator.generateJoyStick, this.generator.generateKeyPad, this.generator.generateToggleButton];
+        const generators = [this.generator.generateButton.bind(this.generator), this.generator.generateSlider.bind(this.generator), this.generator.generateSequenceButton.bind(this.generator), this.generator.generateLever.bind(this.generator), this.generator.generateRotatingDial.bind(this.generator), this.generator.generateJoyStick.bind(this.generator), this.generator.generateKeyPad.bind(this.generator), this.generator.generateToggleButton.bind(this.generator)];
         const orientations = ['horizontal','vertical'];
         let panelData = {}; // For communication {uid: name, uid2: name2}
 
@@ -192,7 +192,6 @@ class Game {
 
         function generatePanelHelper(panels, positions, specialCases, scene, camera,generators){
             let index = 0
-            console.log(this)
             for(let i in panels){
                 console.log(index)
                 let scaling = (panels[i].size > 3)? 2:panels[i].size;
