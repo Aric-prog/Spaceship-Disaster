@@ -1,5 +1,6 @@
 class Game {
-    constructor(){
+    constructor(socket){
+        this.socket = socket;
         this.generator = new Generators();
     }
 
