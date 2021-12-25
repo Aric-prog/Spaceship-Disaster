@@ -3,7 +3,7 @@ const http = require('http');
 const cors = require('cors');
 const initSocket = require('./middleware/socket.js')
 const path = require('path')
-const bodyParser = require('body-parser')
+
 
 const { Server } = require("socket.io")
 
@@ -24,13 +24,6 @@ initSocket(io)
 app.use(express.static(path.join(__dirname, 'client')))
 app.use('/', routes.client)
 app.use('/api', routes.api)
-
-app.use(bodyParser.json())
-app.post('/api/register_user', async (req, res) => {
-    console.log(req.body)
-    res.json({status: 'ok'})
-})
-
 
 const PORT = process.env.PORT || 3000
 httpServer.listen(PORT)
