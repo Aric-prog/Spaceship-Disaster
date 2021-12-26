@@ -42,7 +42,7 @@ function addPanelList(roomCode, sessionID, panelList, arrangement, callback){
         if(err){
             console.log(err);
         } else{
-            callback();
+            callback(sessionID);
         }
     });
     redisClient.json_set(roomCode, '.playerInfo.' + sessionID + '.panelArrangement', JSON.stringify(arrangement), function(err){

@@ -30,7 +30,7 @@ module.exports = function(io){
         4 : [0, 2, 4, 5, 6, 3]
     };
 
-    function createTask(roomCode, sessionID, socket){
+    function createTask(roomCode, sessionID ){
         let penaltyAmount = 3;
         redisClient.json_get(roomCode, 'playerInfo', function(err, playerInfo){
             if(err){
@@ -69,20 +69,29 @@ module.exports = function(io){
                 // Callback to initialize timer once task is inside redis
                 const callback = function(){
                     let duration = _.random(7,10);
-                    io.to(socket.id).emit('newTask', newTask.taskName, duration)
-                    taskTimers[panelUID] = setInterval(function(){
-                        duration -= 1;
-                        if(duration <= 0){
-                            durationOfRooms[roomCode] -= penaltyAmount
-                            // do penalty here to roomtimer
-                            // Emit penalty effect to client
-                            io.to(socket.id).emit('penalty', penaltyAmount)
-
-                            clearInterval(taskTimers[panelUID])
-                            delete taskTimers[panelUID]
+                    redisClient.json_get('playerSockets', sessionID, function(err, socketID){
+                        if(err){
+                            console.log(err)
+                        } else{
+                            socketID = socketID.toString().replace(new RegExp(/"/g), "")
+                            io.to(socketID).emit('newTask', newTask.taskName + ", extraInfo : " + String(newTask.extraInfo), duration)
+                            taskTimers[panelUID] = setInterval(function(){
+                                duration -= 1;
+                                io.to(socketID).emit('taskTimer', duration)
+                                if(duration <= 0){
+                                    durationOfRooms[roomCode] -= penaltyAmount
+                                    // do penalty here to roomtimer
+                                    // Emit penalty effect to client
+                                    io.to(socketID).emit('penalty', penaltyAmount)
+    
+                                    clearInterval(taskTimers[panelUID])
+                                    delete taskTimers[panelUID]
+                                }
+                                // For each second emit to a particular socketID
+                            }, 1000)
                         }
-                        // For each second emit to a particular socket.id
-                    }, 1000)
+                    })
+                    
                 };
                 redisHelper.addTask(roomCode, {panelUID : newTask}, callback);
             }
@@ -122,9 +131,9 @@ module.exports = function(io){
         });
     };
 
-    function newRound(roomCode, sessionID, socket){
-        const callback = function(){
-            createTask(roomCode, sessionID, socket)
+    function newRound(roomCode){
+        const callback = function(sessionID){
+            createTask(roomCode, sessionID)
         }
         createPanelForRoom(roomCode, callback);
     }
