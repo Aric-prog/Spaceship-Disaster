@@ -11,10 +11,19 @@ const {mainTimers, durationOfRooms} = require("./roomTimerVars.js")
 module.exports = function(io){
     // Initialize empty room variable that stores which room the player is in.
     redisClient.json_set('playerRooms', '.', JSON.stringify({}));
+    redisClient.json_set('playerSockets', '.', JSON.stringify({}));
 
     io.on("connection", function(socket){
         const session = socket.handshake.session;
         const sessionID = socket.handshake.sessionID;
+        socket.sessionID = sessionID;
+
+        redisClient.json_set('playerSockets', '.sid' + sessionID, '\"' + socket.id + '\"', function(err){
+            if(err){
+                console.log(err)
+            };
+        })
+
         socket.on("createRoom", function(teamName){
             // Creates an empty room and joins that, also couples their SID with the roomCode in redis
             let roomCode = nanoid();

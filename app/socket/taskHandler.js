@@ -68,7 +68,8 @@ module.exports = function(io){
 
                 // Callback to initialize timer once task is inside redis
                 const callback = function(){
-                    let duration = 10;
+                    let duration = _.random(7,10);
+                    io.to(socket.id).emit('newTask', newTask.taskName, duration)
                     taskTimers[panelUID] = setInterval(function(){
                         duration -= 1;
                         if(duration <= 0){
@@ -76,12 +77,12 @@ module.exports = function(io){
                             // do penalty here to roomtimer
                             // Emit penalty effect to client
                             io.to(socket.id).emit('penalty', penaltyAmount)
+
                             clearInterval(taskTimers[panelUID])
                             delete taskTimers[panelUID]
                         }
                         // For each second emit to a particular socket.id
                     }, 1000)
-                    io.to(socket.id).emit('taskTimer', duration)
                 };
                 redisHelper.addTask(roomCode, {panelUID : newTask}, callback);
             }
@@ -137,8 +138,9 @@ module.exports = function(io){
             // Make this a generic new round function, since the process is the same for new rounds
             newRound(roomCode, sessionID, socket)
         })
-        socket.on('test', function(){
+        socket.on('test', function(arg){
             // Test function for literally anything
+            
         })
     })
 }
