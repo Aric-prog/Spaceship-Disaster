@@ -23,7 +23,6 @@ function roomAbleToStart(packet, next){
                     }
                     else if(playerCountInRoom == 4){
                         redisClient.json_get(roomCode, '.', function(err, roomInfo){
-                            console.log(JSON.parse(roomInfo)['started'])
                             if(JSON.parse(roomInfo)['started']){
                                 next(new Error('Room already started'))
                             } else{

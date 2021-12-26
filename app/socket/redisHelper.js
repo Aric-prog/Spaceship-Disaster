@@ -37,12 +37,12 @@ function getPlayerRoom(sessionID){
     })
 }
 
-function addPanelList(roomCode, sessionID, panelList, arrangement){
+function addPanelList(roomCode, sessionID, panelList, arrangement, callback){
     redisClient.json_set(roomCode, '.playerInfo.' + sessionID + '.panelList', JSON.stringify(panelList), function(err){
         if(err){
             console.log(err);
         } else{
-
+            callback();
         }
     });
     redisClient.json_set(roomCode, '.playerInfo.' + sessionID + '.panelArrangement', JSON.stringify(arrangement), function(err){
@@ -54,7 +54,7 @@ function addPanelList(roomCode, sessionID, panelList, arrangement){
     })
 }
 
-function addTask(roomCode, task, callback){
+function addTask(roomCode, task, callback = ()=>{}){
     redisClient.json_set(roomCode, '.taskList', JSON.stringify(task), function(err){
         if(err){
             console.log(err);

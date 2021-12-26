@@ -6,11 +6,11 @@ const typeToGeneric = {
     'keypad' : 'string', 
     'sequenceButton' : 'string', 
     'joystick' : 'numeric', 
-    'toggle' : 'binary'
+    'toggle' : 'numeric'
 };
 
 const genericToType = {
-    'binary' : ['lever', 'button', 'toggle'],
+    'binary' : ['lever', 'button'],
     'numeric' : ['slider', 'rotatingDial', 'joystick'],
     'string' : ['keypad', 'sequenceButton'],
 }
@@ -20,7 +20,8 @@ const indexTopanelType = ['button', 'slider', 'sequenceButton', 'lever', 'rotati
 const numericRange = {
     'slider' : 3,
     'rotatingDial' : 3,
-    'joystick' : 8
+    'joystick' : 8,
+    'toggle' : 3
 }
 
 const stringRange = {

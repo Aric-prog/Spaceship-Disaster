@@ -29,7 +29,7 @@ module.exports = function(io){
         4 : [0, 2, 4, 5, 6, 3]
     };
 
-    function createTask(roomCode, sessionID){
+    function createTask(roomCode, sessionID, socket){
         redisClient.json_get(roomCode, 'playerInfo', function(err, playerInfo){
             if(err){
                 console.log(err);
@@ -37,12 +37,11 @@ module.exports = function(io){
                 // When generating tasks, make sure that the task is unique to the panel
                 playerInfo = JSON.parse(playerInfo);
 
-                console.log(playerInfo)
-
+                delete playerInfo['sid' + sessionID]
                 let giverSID = _.sample(Object.keys(playerInfo));
-                let randomPanel = _.sample(playerInfo[giverSID]['panelList']);
-                console.log(randomPanel)
-
+                let panelUID = _.sample(Object.keys(playerInfo[giverSID]['panelList']));
+                let randomPanel = playerInfo[giverSID]['panelList'][panelUID]
+                
                 let taskName = randomPanel.name;
                 let taskType = inputInfo.indexTopanelType[randomPanel.typeIndex]
                 let taskCategory = randomPanel.category;
@@ -51,28 +50,41 @@ module.exports = function(io){
                 // Approach 1 : find a way to do above
                 // Approach 2 : screw it, each panel can only have one task
                 
-                let newTask = new Task(taskName, giverSID, sessionID, 1, taskCategory);
-                console.log(newTask)
-
+                let newTask = new Task(taskName, giverSID, 'sid' + sessionID, 1, panelUID);
+                
                 if(taskCategory === "string"){
                     let stringRange = inputInfo.stringRange[taskName];
                     newTask.extraInfo = _.shuffle(_.range(1, stringRange + 1)).toString().replace(new RegExp(/,/g), "");
                 } else if(taskCategory === "numeric") {
                     let numericRange = inputInfo.numericRange[taskName];
+                    // Don't forget to check if input type is toggle, ask yowen at what size does the input size becomes larger as well
                     if(taskType === "slider" && randomPanel.size >= 2){
                         numericRange = 5;
                     }
                     newTask.extraInfo = _.sample(_.range(1, (numericRange + 1)));
                 }
 
-                const callback = function(){io.to(roomCode).emit('newTask', JSON.stringify(newTask))};
-                taskWithKey = {[taskCategory] : newTask};
-                redisHelper.addTask(roomCode, newTask, callback);
+                // Callback to initialize timer once task is inside redis
+                const callback = function(){
+                    let duration = 10;
+                    taskTimers[panelUID] = setInterval(function(){
+                        duration -= 1;
+                        if(duration <= 0){
+                            // do penalty here to roomtimer
+                            // Emit penalty effect to client
+                            clearInterval(taskTimers[panelUID])
+                            delete taskTimers[panelUID]
+                        }
+                        // For each second emit to a particular socket.id
+                    }, 1000)
+                    io.to(socket.id).emit('taskTimer', duration)
+                };
+                redisHelper.addTask(roomCode, {panelUID : newTask}, callback);
             }
         })
     };
     
-    function createPanelForRoom(roomCode){
+    function createPanelForRoom(roomCode, callback = function(){}){
         let distribution = [4, 5, 5, 6];
         
         redisClient.json_get(roomCode, '.playerInfo', function(err, playerInfo){
@@ -99,15 +111,17 @@ module.exports = function(io){
                         
                         panelList[panelID] = newPanel;
                     }
-                    redisHelper.addPanelList(roomCode, sid, panelList, arrangement);
-                };
-                
+                    redisHelper.addPanelList(roomCode, sid, panelList, arrangement, callback);
+                };   
             }
         });
     };
 
-    function newRound(){
-
+    function newRound(roomCode, sessionID, socket){
+        const callback = function(){
+            createTask(roomCode, sessionID, socket)
+        }
+        createPanelForRoom(roomCode, callback);
     }
 
     io.on('connection', function(socket){
@@ -115,29 +129,12 @@ module.exports = function(io){
         socket.use(roomAbleToStart)
         socket.on('start', function(){
             // Generate panel distribution amount of 4,5,5,6
-            
             let roomCode = socket.roomCode;
             // Make this a generic new round function, since the process is the same for new rounds
-            redisClient.json_get(roomCode, '.playerInfo', function(err, playerInfo){
-                if(err){
-                    console.log(err);
-                } else{
-                    let roomSessionIDList = (Object.keys(JSON.parse(playerInfo)));
-                    _.shuffle(roomSessionIDList);
-                    createPanelForRoom(roomCode);
-                }
-            })
+            newRound(roomCode, sessionID, socket)
         })
         socket.on('test', function(){
-            let roomCode = socket.roomCode;
-            redisClient.json_get(roomCode, '.', function(err, playerInfo){
-                if(err){
-                    console.log(err)
-                } else{
-                    console.log(JSON.parse(playerInfo))
-                }
-            })
-            createTask(roomCode, sessionID);
+            // Test function for literally anything
         })
     })
 }
