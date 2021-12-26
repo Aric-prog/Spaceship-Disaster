@@ -3,6 +3,8 @@ const redisHelper = require('./redisHelper.js')
 const { redisClient } = require('../redis.js')
 const roomAbleToStart = require('../middleware/roomAbleToStart.js')
 const _ = require('lodash');
+const { taskTimers } = require('./taskTimerVars.js')
+const { durationOfRooms } = require('./roomTimerVars.js')
 
 const inputInfo = require("./inputInfo.js");
 
@@ -10,11 +12,10 @@ const Task = require("../task.js");
 const Panel = require('../panel.js');
 
 module.exports = function(io){
-    let taskTimers = {}
     const panelType = ['button', 'slider', 'sequenceButton', 'lever', 'rotatingDial', 'joystick', 'keypad', 'toggle']
     
     const firstNamePool = ['Rardo', 'Fantago', 'Lingubo', 'Leibniz', 'Phase', 'Alpha', 'Coperni', 'Joseph', 'Mass', 'Bose']
-    const secondNamePool = ['bar', 'aligner', 'morpher', 'dagger', 'meter', 'sift', 'cycle']
+    const secondNamePool = ['bar', 'aligner', 'morpher', 'dagger', 'meter', 'sift', 'cycle', 'joestar']
 
     const arrangementForSize = {
         4 : [[1, 2, 2, 4], [1, 1, 3, 4], [1, 2, 3, 3], [2, 2, 2, 3]], 
@@ -30,6 +31,7 @@ module.exports = function(io){
     };
 
     function createTask(roomCode, sessionID, socket){
+        let penaltyAmount = 3;
         redisClient.json_get(roomCode, 'playerInfo', function(err, playerInfo){
             if(err){
                 console.log(err);
@@ -70,8 +72,10 @@ module.exports = function(io){
                     taskTimers[panelUID] = setInterval(function(){
                         duration -= 1;
                         if(duration <= 0){
+                            durationOfRooms[roomCode] -= penaltyAmount
                             // do penalty here to roomtimer
                             // Emit penalty effect to client
+                            io.to(socket.id).emit('penalty', penaltyAmount)
                             clearInterval(taskTimers[panelUID])
                             delete taskTimers[panelUID]
                         }
