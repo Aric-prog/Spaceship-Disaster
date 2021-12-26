@@ -10,5 +10,8 @@ router.get('/', function(req, res){
 router.get('/kambing', function(req, res){
     res.sendFile(path.join(__dirname, '../client', 'learning.html'));
 });
+router.get('/register', function(req, res){
+    res.sendFile(path.join(__dirname, '../client', 'test_register.html'));
+});
 
 module.exports = router;
