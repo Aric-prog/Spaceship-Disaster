@@ -42,6 +42,7 @@
         $('timer').html(timeInSec)
     });
     socket.on("roomCreated", function(roomCode){
+        console.log( 'Room : ' + roomCode)
         $('#roomCode').text(roomCode);
     });
     socket.on("joinSuccess", function(){
@@ -49,7 +50,6 @@
     })
     socket.on("newTask", function(newTask, totalDuration){
         $('#taskName').html(newTask)
-        console.log(totalDuration)
     })
     socket.on("taskTimer", function(timeInSec){
         $('#taskTimer').html(timeInSec)
@@ -68,6 +68,9 @@
     function joinRoom(){
         socket.emit("joinRoom", $('#inputRoomCode').val());
     };
+    function joinRoom(arg){
+        socket.emit("joinRoom", arg)
+    }
 
     function reset(){
         socket.emit("reset");

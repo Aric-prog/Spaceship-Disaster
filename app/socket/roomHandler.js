@@ -98,6 +98,7 @@ module.exports = function(io){
             // Room start initialize here
             // Generate lists of tasks here
             io.to(roomCode).emit('start');
+            console.log('wowa')
             redisHelper.setRoomStartedFlag(roomCode)
             durationOfRooms[roomCode] = 60
             // TODO : Remember the time in the rooms, to be used later for penalties when they fuck up

@@ -26,7 +26,7 @@ html, body {
     left: 20px;
 }
 
-.taskTimer{
+#taskTimer{
     width: 100%;
     height: 80px;
     background-color: rgba(0,255,0);
@@ -35,7 +35,7 @@ html, body {
     z-index: 1;
 }
 
-.taskBg{
+#taskBg{
     position: fixed;
     width: 100%;
     height: 80px;
@@ -46,7 +46,7 @@ html, body {
     
 }
 
-.task{
+#task{
     text-align: center;
     position: fixed;
     z-index: 999;
