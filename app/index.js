@@ -2,6 +2,8 @@ const express = require('express');
 const http = require('http');
 const cors = require('cors');
 const initSocket = require('./middleware/socket.js')
+const path = require('path')
+
 
 const { Server } = require("socket.io")
 
@@ -19,6 +21,7 @@ const io = new Server(httpServer, {
 
 app.use(session)
 initSocket(io)
+app.use(express.static(path.join(__dirname, 'client')))
 app.use('/', routes.client)
 app.use('/api', routes.api)
 

@@ -3,6 +3,8 @@ const redisHelper = require('./redisHelper.js')
 const { redisClient } = require('../redis.js')
 const roomAbleToStart = require('../middleware/roomAbleToStart.js')
 const _ = require('lodash');
+const { taskTimers } = require('./taskTimerVars.js')
+const { durationOfRooms } = require('./roomTimerVars.js')
 
 const inputInfo = require("./inputInfo.js");
 
@@ -10,11 +12,10 @@ const Task = require("../task.js");
 const Panel = require('../panel.js');
 
 module.exports = function(io){
-    let taskTimers = {}
     const panelType = ['button', 'slider', 'sequenceButton', 'lever', 'rotatingDial', 'joystick', 'keypad', 'toggle']
     
     const firstNamePool = ['Rardo', 'Fantago', 'Lingubo', 'Leibniz', 'Phase', 'Alpha', 'Coperni', 'Joseph', 'Mass', 'Bose']
-    const secondNamePool = ['bar', 'aligner', 'morpher', 'dagger', 'meter', 'sift', 'cycle']
+    const secondNamePool = ['bar', 'aligner', 'morpher', 'dagger', 'meter', 'sift', 'cycle', 'joestar']
 
     const arrangementForSize = {
         4 : [[1, 2, 2, 4], [1, 1, 3, 4], [1, 2, 3, 3], [2, 2, 2, 3]], 
@@ -29,7 +30,8 @@ module.exports = function(io){
         4 : [0, 2, 4, 5, 6, 3]
     };
 
-    function createTask(roomCode, sessionID){
+    function createTask(roomCode, sessionID ){
+        let penaltyAmount = 3;
         redisClient.json_get(roomCode, 'playerInfo', function(err, playerInfo){
             if(err){
                 console.log(err);
@@ -37,40 +39,66 @@ module.exports = function(io){
                 // When generating tasks, make sure that the task is unique to the panel
                 playerInfo = JSON.parse(playerInfo);
 
-                console.log(playerInfo)
-
+                delete playerInfo['sid' + sessionID]
                 let giverSID = _.sample(Object.keys(playerInfo));
-    
-                let randomPanel = _.sample(playerInfo[giverSID]['panelList']);
-                console.log(randomPanel)
-
-                let taskName = randomPanel['taskName'];
-                let taskCategory = inputInfo.typeToGeneric[taskName];
+                let panelUID = _.sample(Object.keys(playerInfo[giverSID]['panelList']));
+                let randomPanel = playerInfo[giverSID]['panelList'][panelUID]
+                
+                let taskName = randomPanel.name;
+                let taskType = inputInfo.indexTopanelType[randomPanel.typeIndex]
+                let taskCategory = randomPanel.category;
                 
                 // TODO : How to identify panel using task UID??
                 // Approach 1 : find a way to do above
                 // Approach 2 : screw it, each panel can only have one task
                 
-                console.log(taskCategory);
-                let newTask = new Task(taskName, giverSID, sessionID, 1, taskCategory, );
-                console.log(newTask)
-                // if(taskCategory === "string"){
-                //     let stringRange = inputInfo.stringRange[taskName];
-                //     newTask.extraInfo = _.shuffle(_.range(1, stringRange + 1)).toString().replace(new RegExp(/,/g), "");
-                // } else if(taskCategory === "numeric") {
-                //     let numericRange = inputInfo.numericRange[taskName];
+                let newTask = new Task(taskName, giverSID, 'sid' + sessionID, 1, panelUID);
+                
+                if(taskCategory === "string"){
+                    let stringRange = inputInfo.stringRange[taskName];
+                    newTask.extraInfo = _.shuffle(_.range(1, stringRange + 1)).toString().replace(new RegExp(/,/g), "");
+                } else if(taskCategory === "numeric") {
+                    let numericRange = inputInfo.numericRange[taskName];
+                    // Don't forget to check if input type is toggle, ask yowen at what size does the input size becomes larger as well
+                    if(taskType === "slider" && randomPanel.size >= 2){
+                        numericRange = 5;
+                    }
+                    newTask.extraInfo = _.sample(_.range(1, (numericRange + 1)));
+                }
 
-                //     if(taskName === "" && ){
-                        
-                //     } else{
-                //         newTask.extraInfo = _.sample(_.range(1, (numericRange + 1)));
-                //     }
-                // }
+                // Callback to initialize timer once task is inside redis
+                const callback = function(){
+                    let duration = _.random(7,10);
+                    redisClient.json_get('playerSockets', sessionID, function(err, socketID){
+                        if(err){
+                            console.log(err)
+                        } else{
+                            socketID = socketID.toString().replace(new RegExp(/"/g), "")
+                            io.to(socketID).emit('newTask', newTask.taskName + ", extraInfo : " + String(newTask.extraInfo), duration)
+                            taskTimers[panelUID] = setInterval(function(){
+                                duration -= 1;
+                                io.to(socketID).emit('taskTimer', duration)
+                                if(duration <= 0){
+                                    durationOfRooms[roomCode] -= penaltyAmount
+                                    // do penalty here to roomtimer
+                                    // Emit penalty effect to client
+                                    io.to(socketID).emit('penalty', penaltyAmount)
+    
+                                    clearInterval(taskTimers[panelUID])
+                                    delete taskTimers[panelUID]
+                                }
+                                // For each second emit to a particular socketID
+                            }, 1000)
+                        }
+                    })
+                    
+                };
+                redisHelper.addTask(roomCode, {panelUID : newTask}, callback);
             }
         })
     };
     
-    function createPanelForRoom(roomCode){
+    function createPanelForRoom(roomCode, callback = function(){}){
         let distribution = [4, 5, 5, 6];
         
         redisClient.json_get(roomCode, '.playerInfo', function(err, playerInfo){
@@ -97,18 +125,17 @@ module.exports = function(io){
                         
                         panelList[panelID] = newPanel;
                     }
-                    console.log(JSON.stringify(panelList))
-                    console.log(arrangement)
-                    console.log("\n\n")
-                    redisHelper.addPanelList(roomCode, sid, panelList, arrangement);
-                };
-                
+                    redisHelper.addPanelList(roomCode, sid, panelList, arrangement, callback);
+                };   
             }
         });
     };
 
-    function newRound(){
-
+    function newRound(roomCode){
+        const callback = function(sessionID){
+            createTask(roomCode, sessionID)
+        }
+        createPanelForRoom(roomCode, callback);
     }
 
     io.on('connection', function(socket){
@@ -116,33 +143,13 @@ module.exports = function(io){
         socket.use(roomAbleToStart)
         socket.on('start', function(){
             // Generate panel distribution amount of 4,5,5,6
-            
             let roomCode = socket.roomCode;
-            
             // Make this a generic new round function, since the process is the same for new rounds
-            redisClient.json_get(roomCode, '.playerInfo', function(err, playerInfo){
-                if(err){
-                    console.log(err);
-                } else{
-                    let roomSessionIDList = (Object.keys(JSON.parse(playerInfo)));
-                    _.shuffle(roomSessionIDList);
-                    createPanelForRoom(roomCode);
-                }
-            })
+            newRound(roomCode, sessionID, socket)
         })
-        socket.on('test', function(){
-            let roomCode = socket.roomCode;
-            redisClient.json_get(roomCode, '.', function(err, playerInfo){
-                if(err){
-                    console.log(err)
-                } else{
-                    console.log(JSON.parse(playerInfo))
-                }
-            })
-            createTask(roomCode, sessionID);
-        })
-        socket.on('error', function(err){
-            console.log('err : ' + err);
+        socket.on('test', function(arg){
+            // Test function for literally anything
+            
         })
     })
 }

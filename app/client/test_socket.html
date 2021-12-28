@@ -14,6 +14,7 @@
         <input id="inputRoomCode" type="text">
         <button onclick="joinRoom()">Join Room</button>
         <button onclick="reset()">Reset</button>
+        <button onclick="test()">Test</button>
         <t>Timer : </t>
         
         <timer id="timer">0</timer>
@@ -25,6 +26,9 @@
     <button onclick="numericEvent()">Numeric</button>
     <button onclick="sequenceEvent()">Sequence</button>
     <button onclick="stringEvent()">String</button>
+    <div>- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - </div>
+    <t id="taskName"></t>
+    <t id="taskTimer"></t>
 </body>
 <!-- Socket io stuff -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
@@ -38,11 +42,18 @@
         $('timer').html(timeInSec)
     });
     socket.on("roomCreated", function(roomCode){
+        console.log( 'Room : ' + roomCode)
         $('#roomCode').text(roomCode);
     });
     socket.on("joinSuccess", function(){
         alert("succesfully joined room")
     })
+    socket.on("newTask", function(newTask, totalDuration){
+        $('#taskName').html(newTask)
+    })
+    socket.on("taskTimer", function(timeInSec){
+        $('#taskTimer').html(timeInSec)
+    });
     socket.on("start", function(){
         alert("game started")
     })
@@ -57,6 +68,9 @@
     function joinRoom(){
         socket.emit("joinRoom", $('#inputRoomCode').val());
     };
+    function joinRoom(arg){
+        socket.emit("joinRoom", arg)
+    }
 
     function reset(){
         socket.emit("reset");
@@ -74,8 +88,8 @@
         socket.emit("string", $('inputTaskName').val());
     };
 
-    function test(){
-        socket.emit("test");
+    function test(arg){
+        socket.emit("test", arg);
     }
 </script>
 </html>

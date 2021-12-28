@@ -18,6 +18,7 @@ class Room {
         // - Giver of the task (later to signal to them a task is indeed done)
         // - Additional info on task
         this.taskList = {};
+        this.started = false;
     }
 }
 

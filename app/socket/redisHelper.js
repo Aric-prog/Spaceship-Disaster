@@ -17,6 +17,16 @@ function addPlayerToRoom(io, roomCode, player, socket){
     });
 }
 
+function setRoomStartedFlag(roomCode){
+    redisClient.json_set(roomCode, '.started', true, function(err){
+        if(err){
+            console.log(err);
+        } else{
+            
+        }
+    })
+}
+
 function getPlayerRoom(sessionID){
     redisClient.json_get('playerRooms', '.sid' + sessionID, function(err, value){
         if(err){
@@ -27,12 +37,12 @@ function getPlayerRoom(sessionID){
     })
 }
 
-function addPanelList(roomCode, sessionID, panelList, arrangement){
+function addPanelList(roomCode, sessionID, panelList, arrangement, callback){
     redisClient.json_set(roomCode, '.playerInfo.' + sessionID + '.panelList', JSON.stringify(panelList), function(err){
         if(err){
             console.log(err);
         } else{
-            console.log('a');
+            callback(sessionID);
         }
     });
     redisClient.json_set(roomCode, '.playerInfo.' + sessionID + '.panelArrangement', JSON.stringify(arrangement), function(err){
@@ -44,10 +54,20 @@ function addPanelList(roomCode, sessionID, panelList, arrangement){
     })
 }
 
+function addTask(roomCode, task, callback = ()=>{}){
+    redisClient.json_set(roomCode, '.taskList', JSON.stringify(task), function(err){
+        if(err){
+            console.log(err);
+        } else{
+            callback();
+        }
+    })
+}
+
 function endRoom(sessionID){
     // Get client room here and posts relevant data on database
 }
 
 
 
-module.exports = {addPlayerToRoom, getPlayerRoom, endRoom, addPanelList}
+module.exports = {addPlayerToRoom, getPlayerRoom, endRoom, addPanelList, addTask, setRoomStartedFlag}

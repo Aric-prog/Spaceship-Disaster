@@ -1,14 +1,15 @@
 class Game {
     
-    constructor(){
-        this.generator = new Generators()
+    constructor(socket){
+        this.socket = socket;
+        this.generator = new Generators();
     }
     
     newRound(panels,order,scene,camera){
         this.kurban();
         this.generateControlPanel(panels,order,scene,camera);
     }
-
+    
     generateControlPanel(panels, order, scene, camera){
         const panel4 = {0:[1,2,2,4],1:[1,1,3,4],2:[1,2,3,3],3:[2,2,2,3]};
         const panel5 = {0:[1,2,2,2,2],1:[1,1,1,3,3],2:[1,1,1,2,4],3:[1,1,2,2,3]};

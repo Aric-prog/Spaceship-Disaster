@@ -4,18 +4,26 @@ const redisHelper = require("./redisHelper.js")
 const { redisClient } = require("../redis.js");
 const roomAbleToStart = require("../middleware/roomAbleToStart.js");
 
-const Task = require('../task.js')
 const Room = require('../room.js')
 const Player = require("../player.js");
+const {mainTimers, durationOfRooms} = require("./roomTimerVars.js")
 
-const mainTimers = {}
 module.exports = function(io){
     // Initialize empty room variable that stores which room the player is in.
     redisClient.json_set('playerRooms', '.', JSON.stringify({}));
+    redisClient.json_set('playerSockets', '.', JSON.stringify({}));
 
     io.on("connection", function(socket){
         const session = socket.handshake.session;
         const sessionID = socket.handshake.sessionID;
+        socket.sessionID = sessionID;
+
+        redisClient.json_set('playerSockets', '.sid' + sessionID, '\"' + socket.id + '\"', function(err){
+            if(err){
+                console.log(err)
+            };
+        })
+
         socket.on("createRoom", function(teamName){
             // Creates an empty room and joins that, also couples their SID with the roomCode in redis
             let roomCode = nanoid();
@@ -42,13 +50,11 @@ module.exports = function(io){
             let joiningPlayer = new Player(sessionID, socket.id, session.playerName);
             redisClient.json_objlen(roomCode, '.playerInfo', function(err, playerCountInRoom){
                 console.log(playerCountInRoom);
-                if(err){
-                    console.log(err);
+                if(err || playerCountInRoom === null){
                     io.to(socket.id).emit("error", "Room does not exist");
                 } else if(playerCountInRoom >= 4){
                     io.to(socket.id).emit("error", "Cannot join a full room.");
                 } else{
-                    console.log(sessionID);
                     redisHelper.addPlayerToRoom(io, roomCode, joiningPlayer, socket);
                 };
             });
@@ -76,7 +82,7 @@ module.exports = function(io){
             packet.push(sessionID);
             packet.push(socket);
             next()
-        })        
+        })
         socket.use(roomAbleToStart)
         // Starts the game, argument may contain settings for the game
         socket.on("start", function(){
@@ -92,29 +98,25 @@ module.exports = function(io){
             // Room start initialize here
             // Generate lists of tasks here
             io.to(roomCode).emit('start');
-            
-            let timeInSec = 60;
+            console.log('wowa')
+            redisHelper.setRoomStartedFlag(roomCode)
+            durationOfRooms[roomCode] = 60
             // TODO : Remember the time in the rooms, to be used later for penalties when they fuck up
             const mainTimer = setInterval(function(){
-                timeInSec -= 1;
-                io.to(roomCode).emit('timer', timeInSec);
-                if(timeInSec <= 0){
+                durationOfRooms[roomCode] -= 1;
+                if(durationOfRooms[roomCode] <= 0){
                     // Room is die when this happens, don't forget to clear room and stuff here
                     io.to(roomCode).emit('gameOver');
                     redisHelper.endRoom(sessionID);
                     clearInterval(mainTimer);
                 }
+                io.to(roomCode).emit('timer', durationOfRooms[roomCode]);
             }, 1000)
             mainTimers[roomCode] = mainTimer;
         })
 
         socket.on("error", function(err){
-            console.log("err : " + err);
-            if(err.playerRoomNotFound){
-                io.to(socket.id).emit("error", "Player not joined to any room");
-            } else if(err.notEnoughPlayers){
-                io.to(socket.id).emit("error", "Not enough player in room");
-            };
+            io.to(socket.id).emit('error', String(err))
         })
     })   
 }
