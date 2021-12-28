@@ -1,6 +1,12 @@
 class Game {
+    
     constructor(){
-        this.generator = new Generators();
+        this.generator = new Generators()
+    }
+    
+    newRound(panels,order,scene,camera){
+        this.kurban();
+        this.generateControlPanel(panels,order,scene,camera);
     }
 
     generateControlPanel(panels, order, scene, camera){
@@ -16,7 +22,7 @@ class Game {
         }
         let variation;
         switch(order.length){
-            case 4:
+            case 4: 
                 variation = determineVariation(order,panel4);
                 generatePanel4(panels, variation, scene, camera);
                 break;
@@ -54,6 +60,7 @@ class Game {
                         new BABYLON.Vector3(5,0,2.5),
                         new BABYLON.Vector3(-2.5,0,2.5)
                     ];
+                    
                     specialCases = {1:'horizontal',2:'vertical'};
                     generatePanelHelper(panels, positions, specialCases, scene, camera,generators);
                     break;
@@ -228,8 +235,9 @@ class Game {
     }
 
     kurban(){
-        for(let i of this.generator.meshList){
-            i.dispose()
+        for(let kambing of this.generator.meshList){
+            kambing.dispose()
         }
+        
     }
 }

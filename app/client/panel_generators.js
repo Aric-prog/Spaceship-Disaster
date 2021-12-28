@@ -331,7 +331,6 @@ class Generators {
     }
 
     generateLever(position, scaling, scene, orientation,name,uid){
-        console.log(this)
         const base = this.generateBase(scaling,position,orientation,name);
         const lever = new BABYLON.MeshBuilder.CreateBox('lever',{});
         this.meshList.push(lever);
