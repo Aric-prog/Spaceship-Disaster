@@ -1,5 +1,5 @@
 class Generators {
-    constructor(){
+    constructor(scene){
         this.meshList = [];
     }
 
@@ -42,7 +42,7 @@ class Generators {
 
     }
 
-    generateBase(scaling,position,type,name){
+    generateBase(scaling,position,type,name,scene){
         const base = new BABYLON.MeshBuilder.CreateBox("base",{});
         this.meshList.push(base);
         const baseScaling = new BABYLON.Vector3(5,1,5);
@@ -90,6 +90,7 @@ class Generators {
         const outline = BABYLON.MeshBuilder.CreateLines("outline",{points:points});
         this.meshList.push(outline);
         outline.color = new BABYLON.Color3(0,0,0);
+        
         return base;
     }
 
@@ -789,6 +790,34 @@ class Generators {
         displayBackground.rotation = new BABYLON.Vector3(Math.PI/2, Math.PI, 0);
         displayBackground.position = new BABYLON.Vector3(0,base.scaling['y']/2+0.01,-0.18)
         displayBackground.scaling = new BABYLON.Vector3(0.9,0.2,0);
+
+        const keyDisplay1 = BABYLON.Mesh.CreatePlane('keyDisplay1');
+        const keyDisplay2 = BABYLON.Mesh.CreatePlane('keyDisplay2');
+        const keyDisplay3 = BABYLON.Mesh.CreatePlane('keyDisplay3');
+        const keyDisplay4 = BABYLON.Mesh.CreatePlane('keyDisplay4');
+        const keyDisplay5 = BABYLON.Mesh.CreatePlane('keyDisplay5');
+        const keyDisplay6 = BABYLON.Mesh.CreatePlane('keyDisplay6');
+        const keyDisplay7 = BABYLON.Mesh.CreatePlane('keyDisplay7');
+        const keyDisplay8 = BABYLON.Mesh.CreatePlane('keyDisplay8');
+        const keyDisplay9 = BABYLON.Mesh.CreatePlane('keyDisplay9');
+        const keyDisplayDel = BABYLON.Mesh.CreatePlane('keyDisplayDel');
+        const keyDisplayCan = BABYLON.Mesh.CreatePlane('keyDisplayCan');
+        const keyDisplaySub = BABYLON.Mesh.CreatePlane('keyDisplaySub');
+        const keyDisplays = [keyDisplay1,keyDisplay2,keyDisplay3,keyDisplay4,keyDisplay5,keyDisplay6,keyDisplay7,keyDisplay8,keyDisplay9,keyDisplayDel,keyDisplayCan,keyDisplaySub];
+        const keyTexts = ['1','2','3','4','5','6','7','8','9','↩','X','✓']
+
+        for(let i = 0; i < keyDisplays.length; i++){
+            keyDisplays[i].parent = keys[i];
+            keyDisplays[i].isPickable = false;
+            keyDisplays[i].rotation = new BABYLON.Vector3(Math.PI/2, Math.PI, 0);
+            keyDisplays[i].position = new BABYLON.Vector3(0, 0.51, 0);
+            let advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(keyDisplays[i]);
+            const textBox = new BABYLON.GUI.TextBlock();
+            textBox.text = keyTexts[i];
+            textBox.color = "white";
+            textBox.fontSize = 800;
+            advancedTexture.addControl(textBox);
+        }
 
         const display1 = BABYLON.Mesh.CreatePlane('display1');
         const display2 = BABYLON.Mesh.CreatePlane('display2');
