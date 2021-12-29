@@ -42,13 +42,14 @@
             const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 15, new BABYLON.Vector3(0, 0, 0));
             //camera.attachControl(canvas,true);
             camera.setPosition(new BABYLON.Vector3(0, 21, 0));
-            camera.beta = 0.2
             const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0));
             const game = new Game(socket)
             const generators = new Generators()
             let panels = JSON.parse('{"uOyF1qWZ79lDUuvuMd6Yf":{"name":"Bosedagger","typeIndex":6,"category":"string","size":1},"rF2-b-LTArKMRkr6uTQiG":{"name":"Leibnizaligner","typeIndex":0,"category":"binary","size":1},"4zmuMlGQ_ssdqWUxkuBbS":{"name":"Josephmeter","typeIndex":1,"category":"numeric","size":1},"MBZagbY_3jSwYsVnBncGQ":{"name":"Fantagometer","typeIndex":7,"category":"binary","size":2},"9BSLkYYGcyneVTJV1OceO":{"name":"Rardomorpher","typeIndex":3,"category":"binary","size":4}}')
-            game.generateControlPanel(panels,[ 1, 1, 1, 2, 4 ],scene,camera);
+            //game.generateControlPanel(panels,[ 1, 1, 1, 2, 4 ],scene,camera);
             
+            generators.generateSlider(new BABYLON.Vector3(0,0,0), 2, scene, 'horizontal','slider','uid')
+
             return scene;
 
         };

@@ -88,6 +88,7 @@ class Generators {
             ];
         points.push(points[0]);
         const outline = BABYLON.MeshBuilder.CreateLines("outline",{points:points});
+        outline.isPickable = false;
         this.meshList.push(outline);
         outline.color = new BABYLON.Color3(0,0,0);
         
@@ -96,6 +97,7 @@ class Generators {
 
     generateSlider(position, scaling, scene, orientation,name,uid){
         const base = this.generateBase(scaling, position, orientation,name);
+        let status = 0;
         const sliderBase = new BABYLON.MeshBuilder.CreateBox("sliderBase",{});
         this.meshList.push(sliderBase);
         const sliderBaseMat = new BABYLON.StandardMaterial("sliderBaseMat");
@@ -122,8 +124,6 @@ class Generators {
         sliderBaseMat.diffuseColor = new BABYLON.Color3(0,0,0);
         sliderBase.material = sliderBaseMat;
         
-
-
         const sliderButton = new BABYLON.MeshBuilder.CreateBox("sliderButton",{});
         this.meshList.push(sliderButton);
         const sliderButtonMat = new BABYLON.StandardMaterial("sliderButtonMat");
@@ -132,7 +132,7 @@ class Generators {
         const minValue = (orientation == 'vertical')? position['z']-sliderButton.scaling['z']/2+(sliderBase.scaling['z'])/2:position['x']-sliderButton.scaling['x']/2+(sliderBase.scaling['x'])/2
         const maxValue = (orientation == 'vertical')? position['z']+sliderButton.scaling['z']/2-(sliderBase.scaling['z'])/2:position['x']+sliderButton.scaling['x']/2-(sliderBase.scaling['x'])/2
         const midValue = (orientation == 'vertical')? position['z']:position['x']
-        const interval = (maxValue+sliderButtonScaling['x']/2-midValue)/2
+        const interval = (scaling == 2)? 1.5:1
         
         if(scaling != 1){
             const points1 = (orientation == 'vertical')?
@@ -168,14 +168,87 @@ class Generators {
         sliderButton.actionManager = new BABYLON.ActionManager(scene);
         this.onHover(sliderButton,sliderButtonMat,'blue')
 
+        const ghostMid = new BABYLON.MeshBuilder.CreateBox('ghostMid',{});
+        const ghostMin = new BABYLON.MeshBuilder.CreateBox('ghostMin',{});
+        const ghostMax = new BABYLON.MeshBuilder.CreateBox('ghostMax',{});
+        this.meshList.push(ghostMid);
+        this.meshList.push(ghostMin);
+        this.meshList.push(ghostMax);
+        const ghostKey = [ghostMin, ghostMid, ghostMax]
+        ghostMid.position = (orientation == 'vertical')? new BABYLON.Vector3(position['x']+1,0,position['z']): new BABYLON.Vector3(position['x'],0,position['z']+1);
+        ghostMin.position = (orientation == 'vertical')? new BABYLON.Vector3(position['x']+1,0,minValue+0.3): new BABYLON.Vector3(minValue+0.3,0,position['z']+1);
+        ghostMax.position = (orientation == 'vertical')? new BABYLON.Vector3(position['x']+1,0,maxValue-0.3): new BABYLON.Vector3(maxValue-0.3,0,position['z']+1);
+
+        
+        const midDisplay = BABYLON.Mesh.CreatePlane('midDisplay');
+        const minDisplay = BABYLON.Mesh.CreatePlane('minDisplay');
+        const maxDisplay = BABYLON.Mesh.CreatePlane('maxDisplay');
+        const displays = [minDisplay, midDisplay, maxDisplay];
+        const texts = ["-1",'0','1'];
+        if(scaling == 2){
+            texts.splice(0,0,'-2');
+            texts.push('2');
+            const ghostMinMid = new BABYLON.MeshBuilder.CreateBox("ghostMinMid",{});
+            const ghostMidMax = new BABYLON.MeshBuilder.CreateBox("ghostMidMax",{});
+            this.meshList.push(ghostMinMid);
+            this.meshList.push(ghostMidMax);
+            ghostKey.splice(1,0,ghostMinMid);
+            ghostKey.splice(3,0,ghostMidMax);
+            const minMidDisplay = BABYLON.Mesh.CreatePlane('minMidDisplay');
+            const midMaxDisplay = BABYLON.Mesh.CreatePlane('midMaxDisplay');
+            displays.splice(1,0,minMidDisplay);
+            displays.splice(3,0,midMaxDisplay);
+            ghostMinMid.position = (orientation == 'vertical')? new BABYLON.Vector3(position['x']+1,0,minValue-1): new BABYLON.Vector3(minValue-1,0,position['z']+1);
+            ghostMidMax.position = (orientation == 'vertical')? new BABYLON.Vector3(position['x']+1,0,maxValue+1): new BABYLON.Vector3(maxValue+1,0,position['z']+1);
+        }
+        for(let i of ghostKey){
+            i.scaling = new BABYLON.Vector3(0.5,0.3,0.5);
+        }
+        for(let i = 0; i < displays.length; i++){
+            displays[i].parent = ghostKey[i]
+            displays[i].isPickable = false;
+            displays[i].rotation = new BABYLON.Vector3(Math.PI/2,Math.PI,0);
+            displays[i].position = new BABYLON.Vector3(0,2,0);
+            let advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(displays[i]);
+            const textBox = new BABYLON.GUI.TextBlock();
+            textBox.text = texts[i];
+            textBox.color = "black";
+            textBox.fontSize = 800;
+            advancedTexture.addControl(textBox);
+        }
+        
+
+
         const pointerDragBehavior = (orientation == "vertical")? new BABYLON.PointerDragBehavior({dragAxis: new BABYLON.Vector3(0,0,1)}):new BABYLON.PointerDragBehavior({dragAxis: new BABYLON.Vector3(1,0,0)});
         sliderButton.addBehavior(pointerDragBehavior);
        
         pointerDragBehavior.onDragEndObservable.add((event)=>{
             let sliderPos = (orientation == 'vertical')? Math.round((sliderButton.position['z'])*10)/10 : Math.round(sliderButton.position['x']*10)/10;
-            //console.log(sliderPos)
-            sliderThresholdCheck(sliderPos,scaling,maxValue,minValue, midValue,interval,name,uid);
-            //console.log(event);
+            if(scaling == 1){
+                if(sliderPos <= midValue-interval/2){status = 1}
+                else if(sliderPos >= midValue+interval/2){status = -1}
+                else {status = 0};
+                
+            }
+            else{
+                if(sliderPos <= minValue && sliderPos > midValue + interval){
+                    if(sliderPos >= midValue + interval + interval/2){status = -2}
+                    else {status = -1}
+                }
+                else if(sliderPos <= midValue + interval && sliderPos > midValue){
+                    if(sliderPos >= midValue + interval/2) {status = -1}
+                    else {status = 0}
+                }
+                else if(sliderPos >= midValue - interval && sliderPos < midValue){
+                    if(sliderPos <= midValue - interval/2) {status = 1}
+                    else {status = 0}
+                }
+                else if(sliderPos >= maxValue && sliderPos < midValue - interval){
+                    if(sliderPos <= midValue - interval - interval/2){status = 2}
+                    else {status = 1}
+                }
+            }
+            sliderUpdate(status,sliderButton,maxValue,minValue,midValue,interval,name,uid);
          })
         pointerDragBehavior.validateDrag = (targetPosition)=>{
             if(orientation == 'vertical'){
@@ -200,30 +273,31 @@ class Generators {
                 }
         }
         }
-        function sliderThresholdCheck(sliderPos, scaling, maxValue, minValue, midValue, interval,name,uid){
-            const offSet = 0.2;
-            
-            if(sliderPos <= midValue+offSet && sliderPos >= midValue-offSet){
-                console.log(['mid',name,uid]);
+        function sliderUpdate(status,slider, max, min, mid, interval, name, uid){
+            console.log([status,name,uid])
+            switch(status){
+                case -2:
+                    if(orientation == 'vertical'){slider.position.z = min}
+                    else{slider.position.x = min};
+                    break;
+                case -1:
+                    if(orientation == 'vertical'){slider.position.z = mid + interval}
+                    else{slider.position.x = mid+interval}
+                    break;
+                case 0:
+                    if(orientation == 'vertical'){slider.position.z = mid}
+                    else{slider.position.x = mid}
+                    break;
+                case 1:
+                    if(orientation == 'vertical'){slider.position.z = mid - interval}
+                    else{slider.position.x = mid - interval}
+                    break;
+                case 2:
+                    if(orientation == 'vertical'){slider.position.z = max}
+                    else{slider.position.x = max}
+                    break;
+                        
             }
-    
-            else if(sliderPos == minValue){
-                console.log(['min',name,uid])
-            }
-    
-            else if(sliderPos == maxValue){
-                console.log(['max',name,uid])
-            }
-    
-            else if(scaling != 1){
-                if(sliderPos <= midValue+offSet+interval && sliderPos >= midValue+interval-offSet){
-                    console.log(['mid-max',name,uid])
-                }
-                if(sliderPos <= midValue+offSet-interval && sliderPos >= midValue-interval-offSet){
-                    console.log(['mid-min',name,uid])
-                }
-            }
-    
         }
     }
 
