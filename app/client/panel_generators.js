@@ -132,7 +132,7 @@ class Generators {
         const minValue = (orientation == 'vertical')? position['z']-sliderButton.scaling['z']/2+(sliderBase.scaling['z'])/2:position['x']-sliderButton.scaling['x']/2+(sliderBase.scaling['x'])/2
         const maxValue = (orientation == 'vertical')? position['z']+sliderButton.scaling['z']/2-(sliderBase.scaling['z'])/2:position['x']+sliderButton.scaling['x']/2-(sliderBase.scaling['x'])/2
         const midValue = (orientation == 'vertical')? position['z']:position['x']
-        const interval = (scaling == 2)? 1.5:1
+        const interval = (scaling == 3)? 2: (scaling == 2)? 1.5:1
         
         if(scaling != 1){
             const points1 = (orientation == 'vertical')?
@@ -185,7 +185,7 @@ class Generators {
         const maxDisplay = BABYLON.Mesh.CreatePlane('maxDisplay');
         const displays = [minDisplay, midDisplay, maxDisplay];
         const texts = ["-1",'0','1'];
-        if(scaling == 2){
+        if(scaling > 1){
             texts.splice(0,0,'-2');
             texts.push('2');
             const ghostMinMid = new BABYLON.MeshBuilder.CreateBox("ghostMinMid",{});
@@ -198,8 +198,8 @@ class Generators {
             const midMaxDisplay = BABYLON.Mesh.CreatePlane('midMaxDisplay');
             displays.splice(1,0,minMidDisplay);
             displays.splice(3,0,midMaxDisplay);
-            ghostMinMid.position = (orientation == 'vertical')? new BABYLON.Vector3(position['x']+1,0,minValue-1): new BABYLON.Vector3(minValue-1,0,position['z']+1);
-            ghostMidMax.position = (orientation == 'vertical')? new BABYLON.Vector3(position['x']+1,0,maxValue+1): new BABYLON.Vector3(maxValue+1,0,position['z']+1);
+            ghostMinMid.position = (orientation == 'vertical')? new BABYLON.Vector3(position['x']+1,0,minValue-1*(scaling-1)): new BABYLON.Vector3(minValue-1*(scaling-1),0,position['z']+1);
+            ghostMidMax.position = (orientation == 'vertical')? new BABYLON.Vector3(position['x']+1,0,maxValue+1*(scaling-1)): new BABYLON.Vector3(maxValue+1*(scaling-1),0,position['z']+1);
         }
         for(let i of ghostKey){
             i.scaling = new BABYLON.Vector3(0.5,0.3,0.5);
@@ -467,7 +467,7 @@ class Generators {
         this.onHover(lever,leverMat,'blue');
     }
     
-    generateRotatingDial(position, scaling,scene,camera,name,uid){
+    generateRotatingDial(position, scaling,scene,name,uid){
         const base = this.generateBase(scaling,position,'diagonal',name);
         const dialBase = new BABYLON.MeshBuilder.CreateCylinder("dialBase",{});
         this.meshList.push(dialBase);
@@ -488,12 +488,76 @@ class Generators {
         dialPointer.scaling = dialPointerScaling;
         dialBase.scaling = dialBaseScaling;
 
+        const ghostMin = new BABYLON.MeshBuilder.CreateBox('ghostMid',{});
+        const ghostMidMin = new BABYLON.MeshBuilder.CreateBox('ghostMidMin',{});
+        const ghostMidMax = new BABYLON.MeshBuilder.CreateBox('ghostMidMax',{});
+        const ghostMax = new BABYLON.MeshBuilder.CreateBox('ghostMax',{});
+        this.meshList.push(ghostMin);
+        this.meshList.push(ghostMidMin);
+        this.meshList.push(ghostMidMax);
+        this.meshList.push(ghostMax);
+        const ghostKey = [ghostMin, ghostMidMin, ghostMidMax, ghostMax]
+        ghostMin.position = new BABYLON.Vector3(position['x']+1.5*scaling,0,position['z']+0.5*scaling)
+        ghostMax.position = new BABYLON.Vector3(position['x']-1.5*scaling,0,position['z']+0.5*scaling)
+        ghostMidMin.position = new BABYLON.Vector3(position['x']+0.8*scaling,0,position['z']-1*scaling)
+        ghostMidMax.position = new BABYLON.Vector3(position['x']-0.8*scaling,0,position['z']-1*scaling)
+
+        const minDisplay = BABYLON.Mesh.CreatePlane('minDisplay');
+        const midMinDisplay = BABYLON.Mesh.CreatePlane('midMinDisplay');
+        const midMaxDisplay = BABYLON.Mesh.CreatePlane('midMaxDisplay');
+        const maxDisplay = BABYLON.Mesh.CreatePlane('maxDisplay');
+        const displays = [minDisplay,midMinDisplay,midMaxDisplay,maxDisplay];
+        const texts = ['0','1','2','3']
+
+        for(let i of ghostKey){
+            i.scaling = new BABYLON.Vector3(0.5*scaling,0.3,0.5*scaling);
+        }
+
+        for(let i = 0; i < displays.length; i++){
+            displays[i].parent = ghostKey[i]
+            displays[i].isPickable = false;
+            displays[i].rotation = new BABYLON.Vector3(Math.PI/2,Math.PI,0);
+            displays[i].position = new BABYLON.Vector3(0,2,0);
+            let advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(displays[i]);
+            const textBox = new BABYLON.GUI.TextBlock();
+            textBox.text = texts[i];
+            textBox.color = "black";
+            textBox.fontSize = 800
+            advancedTexture.addControl(textBox);
+        }
+
+
+
+
         dialPointer.actionManager = new BABYLON.ActionManager(scene);
         dialBase.actionManager = new BABYLON.ActionManager(scene);
         let currentPosition = {x: 0,y: 0 };
         let currentRotation = {x: 0,y: 0 };
         let clicked = false;
         let over = false;
+        let status = 0;
+        const midMin = 60;
+        const midMax = 120;
+
+        function updateStatus(rad, status, midMin, midMax){
+            let angle = (180/Math.PI)*rad;
+            const max = 180;
+            const min = 0;
+            const interval = max/3;
+            if(angle > midMax && angle <= max){
+                if(angle >= midMax + interval/2){status = 3}
+                else{status = 2};
+            }
+            else if(angle >= midMin && angle < midMax){
+                if(angle >= midMin + interval/2){status = 2}
+                else{status = 1};
+            }
+            else if(angle >= min && angle < midMin){
+                if(angle >= min + interval/2){status = 1}
+                else{status = 0};
+            }
+            return status
+        }
 
         function initDialAction(mesh){
             mesh.actionManager.registerAction(
@@ -501,7 +565,6 @@ class Generators {
                     BABYLON.ActionManager.OnPickDownTrigger,
                     function(){
                         over = true;
-                        camera.detachControl(canvas,false)
                     }
                 )
             )
@@ -510,9 +573,8 @@ class Generators {
                     BABYLON.ActionManager.OnPickOutTrigger,
                     function() {
                         over = false;
-                        //console.log((180/Math.PI)*dialPointer.rotation.y)
-                        rotatingDialThresholdCheck(dialPointer.rotation.y,name,uid);
-                        camera.attachControl(canvas,true)
+                        status = updateStatus(dialPointer.rotation.y,status,midMin,midMax);
+                        dialUpdate(dialPointer, status, midMin, midMax, name, uid);
                     }
                 )
             )
@@ -521,9 +583,8 @@ class Generators {
                     BABYLON.ActionManager.OnPickUpTrigger,
                     function() {
                         over = false;
-                        //console.log((180/Math.PI)*dialPointer.rotation.y)
-                        rotatingDialThresholdCheck(dialPointer.rotation.y,name,uid);
-                        camera.attachControl(canvas,false)
+                        status = updateStatus(dialPointer.rotation.y,status,midMin,midMax);
+                        dialUpdate(dialPointer, status, midMin, midMax, name, uid);
                     }
                 )
             )
@@ -547,7 +608,8 @@ class Generators {
             if(over == true){
                 dialPointer.rotation.y = currentRotation.y + (evt.clientX - currentPosition.x) / 40.0;
                 if(dialPointer.rotation.y < 0){dialPointer.rotation.y = 0};
-                if(dialPointer.rotation.y > Math.PI){dialPointer.rotation.y = Math.PI}
+                if(dialPointer.rotation.y > Math.PI){
+                    dialPointer.rotation.y = Math.PI}
             }
         });
         
@@ -557,27 +619,29 @@ class Generators {
         this.onHover(dialBase,dialPointerMat,'blue')
         this.onHover(dialPointer,dialPointerMat,'blue');   
 
-        function rotatingDialThresholdCheck(rotation,name,uid){
-            const offset = Math.PI*(15/180);
-            const min = -0.1;
-            const max = Math.PI+0.1;
-            const minMid = Math.PI*(60/180);
-            const maxMid = Math.PI*(120/180);
-            if(rotation > min && rotation < offset){
-                console.log(['min',name,uid])
-            }
-            else if(rotation > minMid-offset && rotation < minMid+offset){
-                console.log(['mid-min',name,uid])
-            }
-            
-            else if(rotation > maxMid-offset && rotation < maxMid+offset){
-                console.log(['mid-max',name,uid])
-            }
-            
-            else if(rotation > max-offset && rotation < max){
-                console.log(['max',name,uid])
+        function dialUpdate(dialPointer, status, midMinDeg, midMaxDeg, name, uid){
+            const min = 0;
+            const max = Math.PI;
+            const midMin = (Math.PI/180) * midMinDeg;
+            const midMax = (Math.PI/180) * midMaxDeg;
+            console.log([status, name, uid])
+
+            switch(status){
+                case 0:
+                    dialPointer.rotation.y = min;
+                    break;
+                case 1:
+                    dialPointer.rotation.y = midMin;
+                    break;
+                case 2:
+                    dialPointer.rotation.y = midMax;
+                    break;
+                case 3:
+                    dialPointer.rotation.y = max;
+                    break;
             }
         }
+
     }
 
     generateJoyStick(position, scaling, scene,name,uid){

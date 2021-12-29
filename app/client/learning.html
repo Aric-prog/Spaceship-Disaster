@@ -48,8 +48,8 @@
             let panels = JSON.parse('{"uOyF1qWZ79lDUuvuMd6Yf":{"name":"Bosedagger","typeIndex":6,"category":"string","size":1},"rF2-b-LTArKMRkr6uTQiG":{"name":"Leibnizaligner","typeIndex":0,"category":"binary","size":1},"4zmuMlGQ_ssdqWUxkuBbS":{"name":"Josephmeter","typeIndex":1,"category":"numeric","size":1},"MBZagbY_3jSwYsVnBncGQ":{"name":"Fantagometer","typeIndex":7,"category":"binary","size":2},"9BSLkYYGcyneVTJV1OceO":{"name":"Rardomorpher","typeIndex":3,"category":"binary","size":4}}')
             //game.generateControlPanel(panels,[ 1, 1, 1, 2, 4 ],scene,camera);
             
-            generators.generateSlider(new BABYLON.Vector3(0,0,0), 2, scene, 'horizontal','slider','uid')
-
+            generators.generateRotatingDial(new BABYLON.Vector3(2.5,0,-2.50),2, scene, 'Gaybar','dial')
+            generators.generateSlider(new BABYLON.Vector3(-5,0,0),3,scene,'vertical','Segs','slider')
             return scene;
 
         };
