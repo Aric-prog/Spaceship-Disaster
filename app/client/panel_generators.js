@@ -526,9 +526,6 @@ class Generators {
             advancedTexture.addControl(textBox);
         }
 
-
-
-
         dialPointer.actionManager = new BABYLON.ActionManager(scene);
         dialBase.actionManager = new BABYLON.ActionManager(scene);
         let currentPosition = {x: 0,y: 0 };
@@ -608,8 +605,7 @@ class Generators {
             if(over == true){
                 dialPointer.rotation.y = currentRotation.y + (evt.clientX - currentPosition.x) / 40.0;
                 if(dialPointer.rotation.y < 0){dialPointer.rotation.y = 0};
-                if(dialPointer.rotation.y > Math.PI){
-                    dialPointer.rotation.y = Math.PI}
+                if(dialPointer.rotation.y > Math.PI){dialPointer.rotation.y = Math.PI}
             }
         });
         
@@ -664,6 +660,44 @@ class Generators {
         joyStick.position = new BABYLON.Vector3(position['x'],base.scaling.y/2 + joyStickScaling['y']/2,position['z']+0.5*scaling)
         joyStick.scaling = joyStickScaling;
 
+        const ghostN = new BABYLON.MeshBuilder.CreateBox('ghostN',{});
+        const ghostE = new BABYLON.MeshBuilder.CreateBox('ghostE',{});
+        const ghostS = new BABYLON.MeshBuilder.CreateBox('ghostS',{});
+        const ghostW = new BABYLON.MeshBuilder.CreateBox('ghostW',{});
+        this.meshList.push(ghostN);
+        this.meshList.push(ghostE);
+        this.meshList.push(ghostS);
+        this.meshList.push(ghostW);
+        const ghostKey = [ghostN, ghostE, ghostS, ghostW]
+        ghostN.position = new BABYLON.Vector3(position['x'],0,position['z']-1.25*scaling)
+        ghostE.position = new BABYLON.Vector3(position['x']-joyStickBase.scaling.x/2-0.5,0,position['z']+0.5*scaling)
+        ghostS.position = new BABYLON.Vector3(position['x'],0,base.position.z+base.scaling.z/2-0.25*scaling)
+        ghostW.position = new BABYLON.Vector3(position['x']+joyStickBase.scaling.x/2+0.5,0,position['z']+0.5*scaling)
+
+        const NDisplay = BABYLON.Mesh.CreatePlane('NDisplay');
+        const EDisplay = BABYLON.Mesh.CreatePlane('EDisplay');
+        const SDisplay = BABYLON.Mesh.CreatePlane('SDisplay');
+        const WDisplay = BABYLON.Mesh.CreatePlane('WDisplay');
+        const displays = [NDisplay,EDisplay,SDisplay,WDisplay];
+        const texts = ['N','E','S','W']
+
+        for(let i of ghostKey){
+            i.scaling = new BABYLON.Vector3(0.5*scaling,0.3,0.5*scaling);
+        }
+
+        for(let i = 0; i < displays.length; i++){
+            displays[i].parent = ghostKey[i]
+            displays[i].isPickable = false;
+            displays[i].rotation = new BABYLON.Vector3(Math.PI/2,Math.PI,0);
+            displays[i].position = new BABYLON.Vector3(0,2,0);
+            let advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateForMesh(displays[i]);
+            const textBox = new BABYLON.GUI.TextBlock();
+            textBox.text = texts[i];
+            textBox.color = "black";
+            textBox.fontSize = 800
+            advancedTexture.addControl(textBox);
+        }
+
         const points1 = [
             new BABYLON.Vector3(position['x']+joyStickBaseScaling['x']/2,joyStickBase.position.y+joyStickBaseScaling['y']/2+0.01,position['z']-joyStickBaseScaling['z']/2+0.5*scaling),
             new BABYLON.Vector3(position['x']-joyStickBaseScaling['x']/2,joyStickBase.position.y+joyStickBaseScaling['y']/2+0.01,position['z']+joyStickBaseScaling['z']/2+0.5*scaling),
@@ -705,14 +739,41 @@ class Generators {
         this.onHover(joyStick,joyStickMat,'blue');
         const xMin = joyStickBase.position.x - joyStickBase.scaling['x']/2 + joyStick.scaling['x']/2
         const xMax = joyStickBase.position.x + joyStickBase.scaling['x']/2 - joyStick.scaling['x']/2
+        const x2 = (xMax-xMin)/4+xMin;
+        const x1 = xMax-(xMax-xMin)/4;
         const zMin = joyStickBase.position.z - joyStickBase.scaling['z']/2 + joyStick.scaling['z']/2
         const zMax = joyStickBase.position.z + joyStickBase.scaling['z']/2 - joyStick.scaling['z']/2
+        const z1 = (zMax-zMin)/4+zMin;
+        const z2 = zMax-(zMax-zMin)/4;
+        let status = 0;
+
         const boundary = [xMin,xMax,zMin,zMax]
         pointerDragBehavior.onDragEndObservable.add((event)=>{
             let stickPos = {x:Math.round(joyStick.position['x']*100)/100,z:Math.round(joyStick.position['z']*100)/100}
-            //console.log(stickPos);
-            joyStickThresholdCheck(stickPos,boundary,joyStickBase.position,lines,name,uid)
-            //console.log(event);
+            if(stickPos.x < x1 && stickPos.x > x2){
+                if(stickPos.z <= z1){
+                    status = 1;
+                } else if(stickPos.z >= z2){
+                    status = 5;
+                }
+                else{status = 0};
+            }
+            else if(stickPos.x >= x1){
+                if(stickPos.z <= z1){
+                    status = 8;
+                } else if(stickPos.z >= z2){
+                    status = 6;
+                }
+                else{status = 7;}
+            } else if(stickPos.x <= x2){
+                if(stickPos.z <= z1){
+                    status = 2;
+                } else if(stickPos.z >= z2){
+                    status = 4;
+                }
+                else{status = 3;}
+            }
+            joyStickUpdate(status,boundary,joyStick,lines,name,uid)
          })
         pointerDragBehavior.validateDrag = (targetPosition)=>{
            
@@ -735,82 +796,98 @@ class Generators {
             }
         
         }
-        function joyStickThresholdCheck(stickPos, boundary, position, lines,name,uid){  
-            const offSet = 0.1;
+        function joyStickUpdate(status, boundary, joyStick, lines,name,uid){  
+            console.log([status,name,uid])
             const xMin = boundary[0];
             const xMax = boundary[1];
+            const xMid = (xMax-xMin)/2 + xMin;
             const zMin = boundary[2];
             const zMax = boundary[3];
+            const zMid = (zMax-zMin)/2 + zMin;
     
-            if((stickPos['x'] > position['x']-offSet && stickPos['x'] < position['x']+offSet) && (stickPos['z'] == zMin || stickPos['z'] <= zMin+offSet)){
-                console.log(['north',name,uid]);
-                lines[2].color = new BABYLON.Color3(1,0,0);
-                lines[0].color = new BABYLON.Color3(1,1,1);
-                lines[1].color = new BABYLON.Color3(1,1,1);
-                lines[3].color = new BABYLON.Color3(1,1,1);
+            switch(status){
+                case 0:
+                    lines[0].color = new BABYLON.Color3(1,1,1);
+                    lines[1].color = new BABYLON.Color3(1,1,1);
+                    lines[2].color = new BABYLON.Color3(1,1,1);
+                    lines[3].color = new BABYLON.Color3(1,1,1);
+                    joyStick.position.x = xMid;
+                    joyStick.position.z = zMid;
+                    break;
+
+                case 1:
+                    lines[2].color = new BABYLON.Color3(1,0,0);
+                    lines[0].color = new BABYLON.Color3(1,1,1);
+                    lines[1].color = new BABYLON.Color3(1,1,1);
+                    lines[3].color = new BABYLON.Color3(1,1,1);
+                    joyStick.position.x = xMid;
+                    joyStick.position.z = zMin;
+                    break;
+                
+                case 2:
+                    lines[1].color = new BABYLON.Color3(1,0,0);
+                    lines[0].color = new BABYLON.Color3(1,1,1);
+                    lines[2].color = new BABYLON.Color3(1,1,1);
+                    lines[3].color = new BABYLON.Color3(1,1,1);
+                    joyStick.position.x = xMin;
+                    joyStick.position.z = zMin;
+                    break;
+                
+                case 3:
+                    lines[3].color = new BABYLON.Color3(1,0,0);
+                    lines[0].color = new BABYLON.Color3(1,1,1);
+                    lines[1].color = new BABYLON.Color3(1,1,1);
+                    lines[2].color = new BABYLON.Color3(1,1,1);
+                    joyStick.position.x = xMin;
+                    joyStick.position.z = zMid;
+                    break;
+
+                case 4:
+                    lines[0].color = new BABYLON.Color3(1,0,0);
+                    lines[1].color = new BABYLON.Color3(1,1,1);
+                    lines[2].color = new BABYLON.Color3(1,1,1);
+                    lines[3].color = new BABYLON.Color3(1,1,1);
+                    joyStick.position.x = xMin;
+                    joyStick.position.z = zMax;
+                    break;
+
+                case 5:
+                    lines[2].color = new BABYLON.Color3(1,0,0);
+                    lines[0].color = new BABYLON.Color3(1,1,1);
+                    lines[1].color = new BABYLON.Color3(1,1,1);
+                    lines[3].color = new BABYLON.Color3(1,1,1);
+                    joyStick.position.x = xMid;
+                    joyStick.position.z = zMax;
+                    break;
+
+                case 6:
+                    lines[1].color = new BABYLON.Color3(1,0,0);
+                    lines[0].color = new BABYLON.Color3(1,1,1);
+                    lines[2].color = new BABYLON.Color3(1,1,1);
+                    lines[3].color = new BABYLON.Color3(1,1,1);
+                    joyStick.position.x = xMax;
+                    joyStick.position.z = zMax;
+                    break;
+
+                case 7:
+                    lines[3].color = new BABYLON.Color3(1,0,0);
+                    lines[0].color = new BABYLON.Color3(1,1,1);
+                    lines[1].color = new BABYLON.Color3(1,1,1);
+                    lines[2].color = new BABYLON.Color3(1,1,1);
+                    joyStick.position.x = xMax;
+                    joyStick.position.z = zMid;
+                    break;
+                
+                case 8:
+                    lines[0].color = new BABYLON.Color3(1,0,0);
+                    lines[1].color = new BABYLON.Color3(1,1,1);
+                    lines[2].color = new BABYLON.Color3(1,1,1);
+                    lines[3].color = new BABYLON.Color3(1,1,1);
+                    joyStick.position.x = xMax;
+                    joyStick.position.z = zMin;
+                    break;
             }
-    
-            else if((stickPos['x'] >= position['x']-offSet && stickPos['x'] <= position['x']+offSet) && (stickPos['z'] == zMax || stickPos['z'] >= zMax-offSet)){
-                console.log(['south',name,uid]);
-                lines[2].color = new BABYLON.Color3(1,0,0);
-                lines[0].color = new BABYLON.Color3(1,1,1);
-                lines[1].color = new BABYLON.Color3(1,1,1);
-                lines[3].color = new BABYLON.Color3(1,1,1);
-            }
-    
-            else if((stickPos['z'] >= position['z']-offSet && stickPos['z'] <= position['z']+offSet) && (stickPos['x'] == xMin || stickPos['x'] <= xMin+offSet)){
-                console.log(['east',name,uid]);
-                lines[3].color = new BABYLON.Color3(1,0,0);
-                lines[0].color = new BABYLON.Color3(1,1,1);
-                lines[1].color = new BABYLON.Color3(1,1,1);
-                lines[2].color = new BABYLON.Color3(1,1,1);
-            }
-    
-            else if((stickPos['z'] >= position['z']-offSet && stickPos['z'] <= position['z']+offSet) && (stickPos['x'] == xMax || stickPos['x'] >= xMax-offSet)){
-                console.log(['west',name,uid]);
-                lines[3].color = new BABYLON.Color3(1,0,0);
-                lines[0].color = new BABYLON.Color3(1,1,1);
-                lines[1].color = new BABYLON.Color3(1,1,1);
-                lines[2].color = new BABYLON.Color3(1,1,1);
-            }
-    
-            else if((stickPos['z'] == zMin || stickPos['z'] <= zMin+offSet) && (stickPos['x'] == xMax || stickPos['x'] >= xMax-offSet)){
-                console.log(['north-west',name,uid]);
-                lines[0].color = new BABYLON.Color3(1,0,0);
-                lines[1].color = new BABYLON.Color3(1,1,1);
-                lines[2].color = new BABYLON.Color3(1,1,1);
-                lines[3].color = new BABYLON.Color3(1,1,1);
-            }
-    
-            else if((stickPos['z'] == zMax || stickPos['z'] >= zMax-offSet) && (stickPos['x'] == xMax || stickPos['x'] >= xMax-offSet)){
-                console.log(['south-west',name,uid]);
-                lines[1].color = new BABYLON.Color3(1,0,0);
-                lines[0].color = new BABYLON.Color3(1,1,1);
-                lines[2].color = new BABYLON.Color3(1,1,1);
-                lines[3].color = new BABYLON.Color3(1,1,1);
-            }
-    
-            else if((stickPos['z'] == zMin || stickPos['z'] <= zMin+offSet) && (stickPos['x'] == xMin || stickPos['x'] <= xMin+offSet)){
-                console.log(['north-east',name,uid]);
-                lines[1].color = new BABYLON.Color3(1,0,0);
-                lines[0].color = new BABYLON.Color3(1,1,1);
-                lines[2].color = new BABYLON.Color3(1,1,1);
-                lines[3].color = new BABYLON.Color3(1,1,1);
-            }
-    
-            else if((stickPos['z'] == zMax || stickPos['z'] >= zMax-offSet) && (stickPos['x'] == xMin || stickPos['x'] <= xMin+offSet)){
-                console.log(['south-east',name,uid]);
-                lines[0].color = new BABYLON.Color3(1,0,0);
-                lines[1].color = new BABYLON.Color3(1,1,1);
-                lines[2].color = new BABYLON.Color3(1,1,1);
-                lines[3].color = new BABYLON.Color3(1,1,1);
-            }
-            else{
-                lines[0].color = new BABYLON.Color3(1,1,1);
-                lines[1].color = new BABYLON.Color3(1,1,1);
-                lines[2].color = new BABYLON.Color3(1,1,1);
-                lines[3].color = new BABYLON.Color3(1,1,1);
-            }
+            
         }
     }
 
