@@ -1,3 +1,4 @@
+const attachRoomCode = require("../middleware/attachRoomCode.js");
 const { redisClient } = require("../redis.js")
 const redisHelper = require("./redisHelper.js")
 
@@ -24,6 +25,8 @@ module.exports = function(io){
         //         callback(additionalInfo)
         //     })
         // }
+
+        socket.use(attachRoomCode)
         socket.on("binary", function(){
             // 1. You need to query session id to get the player room
             // 2. YOu need to check the task inside the room itself
