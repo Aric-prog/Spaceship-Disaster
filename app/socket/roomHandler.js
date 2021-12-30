@@ -50,6 +50,7 @@ module.exports = function(io){
             let joiningPlayer = new Player(sessionID, socket.id, session.playerName);
             redisClient.json_objlen(roomCode, '.playerInfo', function(err, playerCountInRoom){
                 console.log(playerCountInRoom);
+                console.log(err);
                 if(err || playerCountInRoom === null){
                     io.to(socket.id).emit("error", "Room does not exist");
                 } else if(playerCountInRoom >= 4){

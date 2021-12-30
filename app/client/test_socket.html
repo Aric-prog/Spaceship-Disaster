@@ -68,9 +68,9 @@
     function joinRoom(){
         socket.emit("joinRoom", $('#inputRoomCode').val());
     };
-    function joinRoom(arg){
-        socket.emit("joinRoom", arg)
-    }
+    // function joinRoom(arg){
+    //     socket.emit("joinRoom", arg)
+    // }
 
     function reset(){
         socket.emit("reset");
