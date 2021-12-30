@@ -12,6 +12,8 @@ module.exports = function(io){
     // - Sequence (press in this order)
     // - String (full string inputs like keypad)
 
+
+
     io.on("connection", function(socket){
         const session = socket.handshake.session; 
         const sessionID = socket.handshake.sessionID;   
@@ -22,7 +24,6 @@ module.exports = function(io){
         //         callback(additionalInfo)
         //     })
         // }
-
         socket.on("binary", function(){
             // 1. You need to query session id to get the player room
             // 2. YOu need to check the task inside the room itself

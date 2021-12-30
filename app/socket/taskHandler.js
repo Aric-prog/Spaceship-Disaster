@@ -140,10 +140,10 @@ module.exports = function(io){
 
     io.on('connection', function(socket){
         const sessionID = socket.handshake.sessionID;
-        socket.use(roomAbleToStart)
         socket.on('start', function(){
             // Generate panel distribution amount of 4,5,5,6
             let roomCode = socket.roomCode;
+            console.log(roomCode)
             // Make this a generic new round function, since the process is the same for new rounds
             newRound(roomCode, sessionID, socket)
         })

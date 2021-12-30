@@ -6,7 +6,8 @@ const roomAbleToStart = require("../middleware/roomAbleToStart.js");
 
 const Room = require('../room.js')
 const Player = require("../player.js");
-const {mainTimers, durationOfRooms} = require("./roomTimerVars.js")
+const {mainTimers, durationOfRooms} = require("./roomTimerVars.js");
+const attachRoomCode = require("../middleware/attachRoomCode.js");
 
 module.exports = function(io){
     // Initialize empty room variable that stores which room the player is in.
@@ -84,6 +85,7 @@ module.exports = function(io){
             packet.push(socket);
             next()
         })
+        socket.use(attachRoomCode)
         socket.use(roomAbleToStart)
         // Starts the game, argument may contain settings for the game
         socket.on("start", function(){
@@ -99,7 +101,6 @@ module.exports = function(io){
             // Room start initialize here
             // Generate lists of tasks here
             io.to(roomCode).emit('start');
-            console.log('wowa')
             redisHelper.setRoomStartedFlag(roomCode)
             durationOfRooms[roomCode] = 60
             // TODO : Remember the time in the rooms, to be used later for penalties when they fuck up
