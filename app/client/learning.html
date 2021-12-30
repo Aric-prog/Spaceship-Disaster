@@ -39,14 +39,27 @@
         // Add your code here matching the playground format
         const createScene = function () {
             const scene = new BABYLON.Scene(engine);
-            const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2.5, 15, new BABYLON.Vector3(0, 0, 0));
-            camera.attachControl(canvas,true);
-            camera.setPosition(new BABYLON.Vector3(0, 20, 0));
+            const camera = new BABYLON.UniversalCamera('camera', new BABYLON.Vector3(0,20,1),scene);
+            camera.setTarget(new BABYLON.Vector3(0,0,0.7));
+            //camera.attachControl(canvas,true);
             const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0));
-            const game = new Game(socket) 
-            let panels = JSON.parse('{"uOyF1qWZ79lDUuvuMd6Yf":{"name":"Bosedagger","typeIndex":2,"category":"string","size":1},"rF2-b-LTArKMRkr6uTQiG":{"name":"Leibnizaligner","typeIndex":0,"category":"binary","size":1},"4zmuMlGQ_ssdqWUxkuBbS":{"name":"Josephmeter","typeIndex":1,"category":"numeric","size":1},"MBZagbY_3jSwYsVnBncGQ":{"name":"Fantagometer","typeIndex":7,"category":"binary","size":2},"9BSLkYYGcyneVTJV1OceO":{"name":"Rardomorpher","typeIndex":3,"category":"binary","size":4}}')
-            game.generateControlPanel(panels,[ 1, 1, 1, 2, 4 ],scene,camera);
-                        
+            const game = new Game(socket)
+            let panels = JSON.parse('{"uOyF1qWZ79lDUuvuMd6Yf":{"name":"Bosedagger","typeIndex":6,"category":"string","size":1},"rF2-b-LTArKMRkr6uTQiG":{"name":"Leibnizaligner","typeIndex":0,"category":"binary","size":1},"4zmuMlGQ_ssdqWUxkuBbS":{"name":"Josephmeter","typeIndex":1,"category":"numeric","size":1},"MBZagbY_3jSwYsVnBncGQ":{"name":"Fantagometer","typeIndex":7,"category":"binary","size":2},"9BSLkYYGcyneVTJV1OceO":{"name":"Rardomorpher","typeIndex":3,"category":"binary","size":4}}')
+            game.generateControlPanel(panels,[ 1, 1, 1, 2, 4 ],scene);
+            
+            var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+            var button1 = BABYLON.GUI.Button.CreateSimpleButton("but1", "Next Round");
+            button1.width = "150px"
+            button1.height = "40px";
+            button1.color = "white";
+            button1.cornerRadius = 20;
+            button1.background = "green";
+            button1.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
+            button1.top = "250px"
+            button1.onPointerUpObservable.add(function() {
+                game.newRound(panels,[1,1,1,2,4],scene,camera)
+            });
+            advancedTexture.addControl(button1); 
             return scene;
 
         };
