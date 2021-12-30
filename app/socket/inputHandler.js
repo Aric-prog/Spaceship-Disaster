@@ -26,7 +26,9 @@ module.exports = function(io){
         //     })
         // }
 
+        // This middleware allows you to access roomCode of a particular socket through socket.roomCode
         socket.use(attachRoomCode)
+
         socket.on("binary", function(){
             // 1. You need to query session id to get the player room
             // 2. YOu need to check the task inside the room itself
