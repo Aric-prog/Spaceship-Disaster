@@ -55,10 +55,11 @@ module.exports = function(io){
                 let newTask = new Task(taskName, giverSID, 'sid' + sessionID, 1, panelUID);
                 
                 if(taskCategory === "string"){
-                    let stringRange = inputInfo.stringRange[taskName];
+                    let stringRange = inputInfo.stringRange[taskType];
                     newTask.extraInfo = _.shuffle(_.range(1, stringRange + 1)).toString().replace(new RegExp(/,/g), "");
+                    
                 } else if(taskCategory === "numeric") {
-                    let numericRange = inputInfo.numericRange[taskName];
+                    let numericRange = inputInfo.numericRange[taskType];
                     // Don't forget to check if input type is toggle, ask yowen at what size does the input size becomes larger as well
                     if(taskType === "slider" && randomPanel.size >= 2){
                         numericRange = 5;

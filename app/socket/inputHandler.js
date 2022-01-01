@@ -43,10 +43,6 @@ module.exports = function(io){
                     console.log(JSON.parse(value))
                 }
             })
-            
-            
-            // redisClient.json_set()
-            // if socket.
         })
         socket.on("numeric", function(numeric){
             
