@@ -56,7 +56,7 @@ module.exports = function(io){
                 
                 if(taskCategory === "string"){
                     let stringRange = inputInfo.stringRange[taskName];
-                    newTask.extraInfo = _.shuffle(_.range(1, stringRange + 1)).toString().replace(new RegExp(/,/g), "");
+                    newTask.extraInfo = _.shuffle(_.range(1, stringRange + 1)).slice(0,4).toString().replace(new RegExp(/,/g), "");
                 } else if(taskCategory === "numeric") {
                     let numericRange = inputInfo.numericRange[taskName];
                     // Don't forget to check if input type is toggle, ask yowen at what size does the input size becomes larger as well
