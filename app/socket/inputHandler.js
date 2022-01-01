@@ -13,18 +13,9 @@ module.exports = function(io){
     // - Sequence (press in this order)
     // - String (full string inputs like keypad)
 
-
-
     io.on("connection", function(socket){
         const session = socket.handshake.session; 
-        const sessionID = socket.handshake.sessionID;   
-
-        // const checkRightSID = function(callback){
-        //     redisClient.json_set(function(err){
-        //         // The whole verify process is here
-        //         callback(additionalInfo)
-        //     })
-        // }
+        const sessionID = socket.handshake.sessionID; 
 
         socket.use(function(packet, next){
             packet.push(sessionID);
@@ -32,26 +23,77 @@ module.exports = function(io){
             next()
         })
         socket.use(attachRoomCode)
-        socket.on("binary", function(){
-            // 1. You need to query session id to get the player room
-            // 2. YOu need to check the task inside the room itself
-            let roomCode = socket.roomCode
+
+        function validateInput(roomCode, sessionID, categoryInput){
             redisClient.json_get(roomCode, '.taskList', function(err, value){
                 if(err){
                     console.log(err)
                 } else{
-                    console.log(JSON.parse(value))
+                    taskList = JSON.parse(value)
+                    let rightWrong = true
+                    console.log(taskList)
+                    for (panel in taskList){
+                        task = taskList[panel]
+                        categoryInput = (categoryInput === null) ? '' : categoryInput
+                        console.log(categoryInput + ': ' + typeof categoryInput)
+                        task.extraInfo = task.extraInfo.toString()
+                        if(task.takerSID === 'sidsid' + sessionID && task.extraInfo === categoryInput){
+                            rightWrong = true
+                            console.log("Task found and correct")
+                            break
+                        }
+                        else{
+                            rightWrong = false
+                        }
+                    }
+                    if (!rightWrong){
+                        console.log("Task is not valid")
+                    }
                 }
             })
-        })
-        socket.on("numeric", function(numeric){
-            
-        })
-        socket.on("sequence", function(sequence){
-            
-        })
-        socket.on("string", function(string){
+        }
 
+        socket.on("binary", function(binaryInput){
+            let roomCode = socket.roomCode
+            // redisClient.json_get(roomCode, '.taskList', function(err, value){
+            //     if(err){
+            //         console.log(err)
+            //     } else{
+            //         taskList = JSON.parse(value)
+            //         let rightWrong = true
+            //         console.log(taskList)
+            //         for (panel in taskList){
+            //             // console.log(panel)
+            //             // console.log(taskList[panel])
+            //             task = taskList[panel]
+            //             binaryInput = (binaryInput === null) ? '' : binaryInput
+            //             if(task.takerSID === 'sidsid' + sessionID && task.extraInfo === binaryInput){
+            //                 rightWrong = true
+            //                 console.log("Task found and correct")
+            //                 break
+            //             }
+            //             else{
+            //                 rightWrong = false
+            //             }
+            //         }
+            //         if (!rightWrong){
+            //             console.log("Task is not valid")
+            //         }
+            //     }
+            // })
+            validateInput(roomCode, sessionID, binaryInput)
+        })
+        socket.on("numeric", function(numericInput){
+            let roomCode = socket.roomCode
+            validateInput(roomCode, sessionID, numericInput)
+        })
+        socket.on("sequence", function(sequenceInput){
+            let roomCode = socket.roomCode
+            validateInput(roomCode, sessionID, sequenceInput)
+        })
+        socket.on("string", function(stringInput){
+            let roomCode = socket.roomCode
+            validateInput(roomCode, sessionID, stringInput)
         })
     })
 }
