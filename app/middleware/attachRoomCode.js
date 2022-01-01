@@ -12,6 +12,7 @@ function attachRoomCode(packet, next){
      ){
         redisClient.json_get('playerRooms', '.sid' + sessionID, function(err, roomCode){
             if(err){
+                console.log(err)
                 next(new Error('Could not find player room'))
             } else{
                 roomCode = roomCode.replace(/['"]+/g, "")

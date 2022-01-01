@@ -17,8 +17,7 @@ module.exports = function(io){
     io.on("connection", function(socket){
         const session = socket.handshake.session;
         const sessionID = socket.handshake.sessionID;
-        socket.sessionID = sessionID;
-
+        console.log(sessionID)
         redisClient.json_set('playerSockets', '.sid' + sessionID, '\"' + socket.id + '\"', function(err){
             if(err){
                 console.log(err)
@@ -83,6 +82,7 @@ module.exports = function(io){
         socket.use(function(packet, next){
             packet.push(sessionID);
             packet.push(socket);
+            console.log(packet)
             next()
         })
         socket.use(attachRoomCode)

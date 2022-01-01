@@ -17,6 +17,7 @@ function addPlayerToRoom(io, roomCode, player, socket){
     });
 }
 
+
 function setRoomStartedFlag(roomCode){
     redisClient.json_set(roomCode, '.started', true, function(err){
         if(err){

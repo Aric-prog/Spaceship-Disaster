@@ -26,12 +26,28 @@ module.exports = function(io){
         //     })
         // }
 
+        socket.use(function(packet, next){
+            packet.push(sessionID);
+            packet.push(socket);
+            next()
+        })
         socket.use(attachRoomCode)
+        const roomCode = socket.roomCode
         socket.on("binary", function(){
             // 1. You need to query session id to get the player room
             // 2. YOu need to check the task inside the room itself
+            redisClient.json_get(roomCode, '.taskList', function(err, value){
+                if(err){
+                    console.log(err)
+                } else{
+                    console.log(JSON.parse(value))
+                }
+            })
+            
+            // redisClient.json_set()
+            // if socket.
         })
-        socket.on("numeric", function(){
+        socket.on("numeric", function(numeric){
             
         })
         socket.on("sequence", function(sequence){

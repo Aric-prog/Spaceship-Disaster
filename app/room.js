@@ -8,7 +8,9 @@ class Room {
         this.progress = 0;
         // Contains relevant data on all players inside the room
         // Players are identified by their session ID.
-        this.playerInfo = {};
+        
+        this.playerInfo = {};// session ID and panel info
+        
 
         this.timer = 90;
 
