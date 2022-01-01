@@ -1,8 +1,8 @@
 const { redisClient } = require('../redis.js')
 function attachRoomCode(packet, next){
     const event = packet[0];
-    const sessionID = packet[1];
-    const socket = packet[2];
+    const sessionID = packet[packet.length - 2];
+    const socket = packet[packet.length - 1];
     
     if(event === 'start' ||
      event === 'binary' ||

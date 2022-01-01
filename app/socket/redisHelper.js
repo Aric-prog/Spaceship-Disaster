@@ -55,8 +55,8 @@ function addPanelList(roomCode, sessionID, panelList, arrangement, callback){
     })
 }
 
-function addTask(roomCode, task, callback = ()=>{}){
-    redisClient.json_set(roomCode, '.taskList', JSON.stringify(task), function(err){
+function addTask(roomCode, panelUID , task, callback = ()=>{}){
+    redisClient.json_set(roomCode, '.taskList.' + panelUID, JSON.stringify(task), function(err){
         if(err){
             console.log(err);
         } else{

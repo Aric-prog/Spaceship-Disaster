@@ -82,7 +82,6 @@ module.exports = function(io){
         socket.use(function(packet, next){
             packet.push(sessionID);
             packet.push(socket);
-            console.log(packet)
             next()
         })
         socket.use(attachRoomCode)

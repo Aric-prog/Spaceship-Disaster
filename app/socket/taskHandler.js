@@ -83,7 +83,6 @@ module.exports = function(io){
                                     // do penalty here to roomtimer
                                     // Emit penalty effect to client
                                     io.to(socketID).emit('penalty', penaltyAmount)
-    
                                     clearInterval(taskTimers[panelUID])
                                     delete taskTimers[panelUID]
                                 }
@@ -91,9 +90,8 @@ module.exports = function(io){
                             }, 1000)
                         }
                     })
-                    
                 };
-                redisHelper.addTask(roomCode, {panelUID : newTask}, callback);
+                redisHelper.addTask(roomCode, panelUID, newTask, callback);
             }
         })
     };
