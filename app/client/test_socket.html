@@ -76,16 +76,16 @@
         socket.emit("reset");
     };
     function binaryEvent(taskName){
-        socket.emit("binary", $('inputTaskName').val());
+        socket.emit("binary", $('#inputTaskName').val());
     };
     function numericEvent(taskName){
-        socket.emit("numeric", $('inputTaskName').val());
+        socket.emit("numeric", $('#inputTaskName').val());
     };
     function sequenceEvent(taskName){
-        socket.emit("sequence", $('inputTaskName').val());
+        socket.emit("sequence", $('#inputTaskName').val());
     };
     function stringEvent(taskName){
-        socket.emit("string", $('inputTaskName').val());
+        socket.emit("string", $('#inputTaskName').val());
     };
 
     function test(arg){

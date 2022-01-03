@@ -8,11 +8,8 @@ class Task {
         this.taskName = taskName;
         this.giverSID = giverSID;
         this.takerSID = takerSID;
-        
         this.panelUID = panelUID;
-
         this.reward = reward;
-        
         this.emergency = emergency;
         this.extraInfo = "";
     };
