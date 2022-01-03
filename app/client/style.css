@@ -108,7 +108,7 @@ html, body {
 }
 .createRoom{
     text-align: center;
-
+    cursor: pointer;
     background-color: black;
     padding-top: 10px;
     padding-bottom: 10px;
@@ -121,6 +121,8 @@ html, body {
     background-color: black;
     color: white;
     font-family: 'sevenSegment';
+    padding: 2px;
+    outline: none;
 }
 .rightText{
     text-align: right;
