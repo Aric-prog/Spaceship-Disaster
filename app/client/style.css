@@ -18,12 +18,11 @@ html, body {
 }
 
 .timer{
-    position: fixed;
     font-family: 'sevenSegment';
     font-size: 32px;
     color: red;
-    top: 20px;
-    left: 20px;
+    background-color: black;
+    padding: 10px;
 }
 
 #taskTimer{
@@ -46,6 +45,90 @@ html, body {
     
 }
 
+.captains{
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 24px;
+    padding-top: 10px;
+    overflow: hidden;
+    height: 0px;
+    width: 0px;
+    transition: width 0.3s ease-in-out;
+}
+.captains.active{
+    width: 250px;
+    height: fit-content;
+}
+
+.toggleArrow{
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 25px;
+    height: 25px;
+    background-color: rgba(209,209,207);
+    border-left : 5px solid grey;
+    border-top : 5px solid grey;
+    border-bottom : 5px solid grey;
+}
+#arrow{
+    height: 100%;
+    width: 100%;
+    text-align: center;
+    transform: rotate(90deg);
+    overflow: hidden;
+    transition: transform 0.3s ease-in-out;
+}
+#arrow.active{
+    transform: rotate(270deg);
+}
+
+.rightMenu{
+    display: flex;
+    position: fixed;
+    top: 0;
+    right: 0;
+    transform: translateX(425px);
+    transition: transform 0.3s ease-in-out;
+}
+.rightMenu.active{
+    transform: translateX(0px);
+}
+
+.rightContainer{
+    height: fit-content;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 400px;
+    padding: 10px;
+    display: grid;
+    row-gap: 10px;
+    background-color: rgba(209,209,207);
+    border-left: 5px solid grey;
+    border-bottom: 5px solid grey;
+}
+.createRoom{
+    text-align: center;
+
+    background-color: black;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    font-size: 24px;
+    color: white;
+    font-family: 'sevenSegment';
+    grid-column: span 2 / span 2;
+}
+.roomInput{
+    background-color: black;
+    color: white;
+    font-family: 'sevenSegment';
+}
+.rightText{
+    text-align: right;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    padding-right: 10px;  
+    font-size: 24px;
+}
 #task{
     text-align: center;
     position: fixed;
@@ -56,4 +139,22 @@ html, body {
     font-weight: bolder;
     width: 100%;
     bottom: 20px;
+}
+.leftMenu{
+    position: fixed;
+    left: 0;
+    top: 0;
+    padding: 20px;
+    background-color: rgba(209,209,207);
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    width: fit-content;
+    max-width: 250px;
+    border-right: 5px solid grey;
+}
+.players{
+    padding-top: 20px;
+    color: #696969;
+    font-family: 'Courier New', Courier, monospace;
 }

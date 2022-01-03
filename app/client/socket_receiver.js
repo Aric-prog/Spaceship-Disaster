@@ -34,3 +34,18 @@ function joinRoom(arg){
 function start(){
     socket.emit("start")
 }
+
+const arrow = document.querySelector('#arrow')
+const rightMenu = document.querySelector('.rightMenu')
+const extendMenu = function(){
+    if(arrow.classList.contains('active')){
+        arrow.classList.remove('active')
+        rightMenu.classList.remove('active')
+    } else{
+        arrow.classList.add('active')
+        rightMenu.classList.add('active')
+    }
+}
+
+arrow.addEventListener('click', extendMenu)
+// game.newRound(panels,[1,1,1,2,4],scene,camera)

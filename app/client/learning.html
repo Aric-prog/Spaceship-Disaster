@@ -5,6 +5,7 @@
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
         <title>Babylon Template</title>
         <link rel="stylesheet" href="style.css">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.2/dat.gui.min.js"></script>
         <script src="https://preview.babylonjs.com/ammo.js"></script>
         <script src="https://preview.babylonjs.com/cannon.js"></script>
@@ -26,15 +27,37 @@
     </head>
 
    <body>
-    <div class="timer">Time : 00</div>
+    <div class="leftMenu" id="leftM">
+        <div class="timer">Time : 00</div>
+        <div class="players" id="room">Room : Not joined yet</div>
+        <div class="players">Players : </div>
+        <div class="captains">Nmae a bit too goddamn long</div>
+        <div class="captains">Captains</div>
+        <div class="captains">Captains</div>
+    </div>
+    <div class="rightMenu" id="rightM">
+        <div class="toggleArrow">
+            <div id="arrow" class="material-icons">arrow_drop_down</div>
+        </div>
+        <div class="rightContainer">
+            <!-- Input name -->
+            <div class="rightText">Username : </div>
+            <input type="text" class="roomInput" placeholder="Input username here"></input>
+            <div class="rightText">Join room : </div>
+            <input class="roomInput"></input>
+            <div class="createRoom">Join / Create room </div>
+        </div>
+    </div>
+
     <div id="taskTimer"></div>
     <div id="task">Turn fantagomorpher and this is a very long string of text</div>
-    <div id="taskBg">Turn fantagomorpher and this is a very long string of text</div>
+    <div id="taskBg"></div>
     <canvas id="renderCanvas" touch-action="none"></canvas> <!-- touch-action="none" for best results from PEP -->
     <script>
         const socket = io('http://localhost:3000');
         const canvas = document.getElementById("renderCanvas"); // Get the canvas element
         const engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
+        const game = new Game(socket)
 
         // Add your code here matching the playground format
         const createScene = function () {
@@ -43,7 +66,6 @@
             camera.setTarget(new BABYLON.Vector3(0,0,0.7));
             //camera.attachControl(canvas,true);
             const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0));
-            const game = new Game(socket)
             let panels = JSON.parse('{"uOyF1qWZ79lDUuvuMd6Yf":{"name":"Bosedagger","typeIndex":6,"category":"string","size":1},"rF2-b-LTArKMRkr6uTQiG":{"name":"Leibnizaligner","typeIndex":0,"category":"binary","size":1},"4zmuMlGQ_ssdqWUxkuBbS":{"name":"Josephmeter","typeIndex":1,"category":"numeric","size":1},"MBZagbY_3jSwYsVnBncGQ":{"name":"Fantagometer","typeIndex":7,"category":"binary","size":2},"9BSLkYYGcyneVTJV1OceO":{"name":"Rardomorpher","typeIndex":3,"category":"binary","size":4}}')
             game.generateControlPanel(panels,[ 1, 1, 1, 2, 4 ],scene);
             
@@ -61,7 +83,6 @@
             });
             advancedTexture.addControl(button1); 
             return scene;
-
         };
 
         const scene = createScene(); //Call the createScene function
@@ -75,6 +96,7 @@
         window.addEventListener("resize", function () {
             engine.resize();
         });
+ 
     </script>
     <script src="socket_receiver.js">
     </script>
