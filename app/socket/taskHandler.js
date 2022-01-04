@@ -30,7 +30,7 @@ module.exports = function(io){
         4 : [0, 2, 4, 5, 6, 3]
     };
 
-    function createTask(roomCode, sessionID ){
+    function createTask(roomCode, sessionID){
         let penaltyAmount = 3;
         redisClient.json_get(roomCode, 'playerInfo', function(err, playerInfo){
             if(err){
@@ -125,6 +125,14 @@ module.exports = function(io){
                         panelList[panelID] = newPanel;
                     }
                     redisHelper.addPanelList(roomCode, sid, panelList, arrangement, callback);
+                    redisClient.json_get('playerSockets', sid, function(err, socketID){
+                        if(err){
+                            console.log(err);
+                        } else{
+                            socketID = socketID.toString().replace(new RegExp(/"/g), "")
+                            io.to(socketID).emit('newRound', panelList, arrangement)
+                        }
+                    })
                 };   
             }
         });

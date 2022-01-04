@@ -8,6 +8,7 @@ class Game {
     }
     
     newRound(panels,order,scene,camera){
+        console.log('test')
         this.generateControlPanel(panels,order,scene);
         this.animateCamera(camera);
     }

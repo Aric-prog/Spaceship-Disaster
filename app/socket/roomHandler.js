@@ -20,6 +20,8 @@ module.exports = function(io){
         redisClient.json_set('playerSockets', '.sid' + sessionID, '\"' + socket.id + '\"', function(err){
             if(err){
                 console.log(err)
+            } else{
+                console.log('Connected : ' + sessionID)
             };
         })
 
@@ -40,6 +42,7 @@ module.exports = function(io){
                 else{
                     redisClient.expire(roomCode, 60 * 60 * 2);
                     redisHelper.addPlayerToRoom(io, roomCode, roomCreator, socket);
+                    
                     io.to(roomCode).emit("roomCreated", roomCode);
                     io.to(roomCode).emit("playerJoined", playerName);
                 };
@@ -109,7 +112,7 @@ module.exports = function(io){
             let roomCode = socket.roomCode;
             // Room start initialize here
             // Generate lists of tasks here
-            io.to(roomCode).emit('start');
+            io.to(roomCode).emit('startGame');
             redisHelper.setRoomStartedFlag(roomCode)
             durationOfRooms[roomCode] = 60
             // TODO : Remember the time in the rooms, to be used later for penalties when they fuck up

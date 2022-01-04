@@ -5,11 +5,11 @@ const joinRoomButton = document.querySelector('#joinRoomButton')
 const roomCodeInput = document.querySelector('#roomCodeInput')
 const leftMenu = document.querySelector('#leftM')
 const startButton = document.querySelector('.startButton')
+const timer = document.querySelector('.timer')
 socket.on("timer", function(timeInSec){
-    $('timer').html('Time : '+ String(timeInSec))
+    $('.timer').html('Time : ' + String(timeInSec))
 });
 socket.on("taskTimer", function(taskTime){
-    console.log('#taskTimer')
     let progressPercentage = ((taskTime / totalTaskDuration) * 100) >> 0
     $('#taskTimer').css('width', String(progressPercentage) + '%')
     let green = ((progressPercentage / 100) * 255) >> 0
@@ -33,6 +33,14 @@ socket.on('playerJoined', function(playerName){
         }
     }, 1000)
     
+})
+
+socket.on("newRound", function(panelList, arrangement){
+    const event = new CustomEvent('newRound', {detail : 
+            {'panelList' : panelList, 'arrangement' : arrangement}
+        }
+    )
+    leftMenu.dispatchEvent(event)
 })
 
 socket.on("newTask", function(taskString, duration){
@@ -119,5 +127,5 @@ const extendMenu = function(){
     }
 }
 
-arrow.addEventListener('click', extendMenu)
 // game.newRound(panels,[1,1,1,2,4],scene,camera)
+arrow.addEventListener('click', extendMenu)

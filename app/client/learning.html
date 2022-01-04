@@ -56,12 +56,12 @@
         const socket = io('http://localhost:3000');
         const canvas = document.getElementById("renderCanvas"); // Get the canvas element
         const engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
-        const game = new Game(socket)
-
+        const listener = document.querySelector('#leftM');
         // Add your code here matching the playground format
         const createScene = function () {
             const scene = new BABYLON.Scene(engine);
             const camera = new BABYLON.UniversalCamera('camera', new BABYLON.Vector3(0,20,1),scene);
+            const game = new Game(socket)
             camera.setTarget(new BABYLON.Vector3(0,0,0.7));
             //camera.attachControl(canvas,true);
             const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0));
@@ -69,18 +69,12 @@
             game.generateControlPanel(panels,[ 1, 1, 1, 2, 4 ],scene);
             
             var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-            var button1 = BABYLON.GUI.Button.CreateSimpleButton("but1", "Next Round");
-            button1.width = "150px"
-            button1.height = "40px";
-            button1.color = "white";
-            button1.cornerRadius = 20;
-            button1.background = "green";
-            button1.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_RIGHT;
-            button1.top = "250px"
-            button1.onPointerUpObservable.add(function() {
-                game.newRound(panels,[1,1,1,2,4],scene,camera)
-            });
-            advancedTexture.addControl(button1); 
+            
+            listener.addEventListener('newRound', function(e){
+                console.log(JSON.stringify(e['detail']['panelList']))
+                console.log((e['detail']['arrangement']))
+                game.newRound(e['detail']['panelList'],e['detail']['arrangement'],scene,camera)
+            })
             return scene;
         };
 
