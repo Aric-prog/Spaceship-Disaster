@@ -17,20 +17,20 @@ module.exports = function(io){
     io.on("connection", function(socket){
         const session = socket.handshake.session;
         const sessionID = socket.handshake.sessionID;
-        console.log(sessionID)
         redisClient.json_set('playerSockets', '.sid' + sessionID, '\"' + socket.id + '\"', function(err){
             if(err){
                 console.log(err)
             };
         })
 
-        socket.on("createRoom", function(teamName){
+        socket.on("createRoom", function(playerName){
             // Creates an empty room and joins that, also couples their SID with the roomCode in redis
             let roomCode = nanoid();
             
-            session.playerName = "unknown";
+            session.playerName = playerName;
             socket.join(roomCode);
-            let room = new Room(roomCode, teamName);
+
+            let room = new Room(roomCode, playerName);
             let roomCreator = new Player(sessionID, socket.id, session.playerName);
 
             redisClient.json_set(roomCode, '.', JSON.stringify(room), function(err){
@@ -41,22 +41,32 @@ module.exports = function(io){
                     redisClient.expire(roomCode, 60 * 60 * 2);
                     redisHelper.addPlayerToRoom(io, roomCode, roomCreator, socket);
                     io.to(roomCode).emit("roomCreated", roomCode);
+                    io.to(roomCode).emit("playerJoined", playerName);
                 };
             });
             
         });
-        socket.on("joinRoom", function(roomCode){
+        socket.on("joinRoom", function(roomCode, playerName){
             // Check if roomcode exist in the server list
-            let joiningPlayer = new Player(sessionID, socket.id, session.playerName);
-            redisClient.json_objlen(roomCode, '.playerInfo', function(err, playerCountInRoom){
-                console.log(playerCountInRoom);
-                console.log(err);
+            session.playerName = playerName;
+            let joiningPlayer = new Player(sessionID, socket.id, playerName);
+
+            redisClient.json_get(roomCode, '.playerInfo', function(err, playerInfo){
+                playerInfo = JSON.parse(playerInfo);
+                let playerCountInRoom = Object.keys(playerInfo).length;
                 if(err || playerCountInRoom === null){
+                    console.log(err)
                     io.to(socket.id).emit("error", "Room does not exist");
                 } else if(playerCountInRoom >= 4){
                     io.to(socket.id).emit("error", "Cannot join a full room.");
                 } else{
                     redisHelper.addPlayerToRoom(io, roomCode, joiningPlayer, socket);
+                    let nameList = []
+                    for(const i in playerInfo){
+                        nameList.push(playerInfo[i]['username'])
+                    }
+                    io.to(roomCode).emit("playerJoined", playerName);
+                    io.to(socket.id).emit("joinedGameRoom", nameList);
                 };
             });
         });

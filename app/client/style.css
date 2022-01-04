@@ -17,11 +17,33 @@ html, body {
     touch-action: none;
 }
 
+.startButton{
+    font-family: 'Courier New', Courier, monospace;
+    background-color: #fff;
+    font-size: 30px;
+    margin-top: 10px;
+    padding: 0px;
+    overflow: hidden;
+    border: none;
+    transition: all 0.3s ease-in-out;
+    height: 0px;
+}
+.startButton.active{
+    height: 50px;
+    border: ridge;
+}
+.startButton:hover{
+    background-color: black;
+    color: white;
+}
+
 .timer{
     font-family: 'sevenSegment';
+    width: 250px;
     font-size: 32px;
     color: red;
     background-color: black;
+    text-align: center;
     padding: 10px;
 }
 
@@ -52,11 +74,11 @@ html, body {
     overflow: hidden;
     height: 0px;
     width: 0px;
-    transition: width 0.3s ease-in-out;
+    width: 250px;
+    transition: height 0.3s ease-in-out;
 }
 .captains.active{
-    width: 250px;
-    height: fit-content;
+    height: 30px;
 }
 
 .toggleArrow{
@@ -152,7 +174,6 @@ html, body {
     height: 100%;
     flex-direction: column;
     width: fit-content;
-    max-width: 250px;
     border-right: 5px solid grey;
 }
 .players{

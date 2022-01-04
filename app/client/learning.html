@@ -27,13 +27,12 @@
     </head>
 
    <body>
-    <div class="leftMenu" id="leftM">
+    <div class="leftMenu">
         <div class="timer">Time : 00</div>
         <div class="players" id="room">Room : Not joined yet</div>
         <div class="players">Players : </div>
-        <div class="captains">Nmae a bit too goddamn long</div>
-        <div class="captains">Captains</div>
-        <div class="captains">Captains</div>
+        <div class="" id="leftM"></div>
+        <button class="startButton">S T A R T</button>
     </div>
     <div class="rightMenu" id="rightM">
         <div class="toggleArrow">
@@ -42,9 +41,9 @@
         <div class="rightContainer">
             <!-- Input name -->
             <div class="rightText">Username : </div>
-            <input id="usernameInput" type="text" class="roomInput" placeholder="Input username here"></input>
+            <input id="usernameInput" type="text" class="roomInput" maxlength="10" placeholder="Input username"></input>
             <div class="rightText">Join room : </div>
-            <input id="roomCodeInput" class="roomInput" placeholder="Input room code"></input>
+            <input id="roomCodeInput" class="roomInput" placeholder="Input room code" maxlength="6"></input>
             <div class="createRoom" id="joinRoomButton">Join / Create room </div>
         </div>
     </div>

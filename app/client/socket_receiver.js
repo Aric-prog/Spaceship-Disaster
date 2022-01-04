@@ -1,5 +1,10 @@
 let totalTaskDuration = 0;
-let totalPlayer = 1;
+let totalPlayer = 0;
+
+const joinRoomButton = document.querySelector('#joinRoomButton')
+const roomCodeInput = document.querySelector('#roomCodeInput')
+const leftMenu = document.querySelector('#leftM')
+const startButton = document.querySelector('.startButton')
 socket.on("timer", function(timeInSec){
     $('timer').html('Time : '+ String(timeInSec))
 });
@@ -14,7 +19,19 @@ socket.on("taskTimer", function(taskTime){
     $('#taskTimer').css('background-color', 'rgb(' + bgcArg + ')')
 })
 
-socket.on('playerJoined', function(){
+socket.on('playerJoined', function(playerName){
+    let captain = document.createElement('div')
+    captain.classList.add('captains')
+    captain.innerHTML = playerName
+    leftMenu.appendChild(captain)
+    totalPlayer += 1;
+    
+    setTimeout(function(){
+        captain.classList.add('active')
+        if(totalPlayer === 4){
+            startButton.classList.add('active')
+        }
+    }, 1000)
     
 })
 
@@ -25,36 +42,67 @@ socket.on("newTask", function(taskString, duration){
     $('#task').html(taskString)
 })
 socket.on("roomCreated", function(roomCode){
-    $('#room').text(roomCode);
+    $('#room').text('Room : ' + roomCode);
+    alert("Succesfully joined room")
 });
-socket.on("joinSuccess", function(){
-    alert("succesfully joined room")
+socket.on("error", function(err){
+    alert(err)
+})
+
+socket.on("joinedGameRoom", function(nameList){
+    let roomCode = roomCodeInput.value.toUpperCase()
+    $('#room').text('Room : ' + roomCode);
+    alert("Succesfully joined room")
+    console.log(nameList)
+    for(const nameIndex in nameList){
+        let captain = document.createElement('div')
+        captain.classList.add('captains')
+        captain.innerHTML = nameList[nameIndex]
+        leftMenu.appendChild(captain)
+        totalPlayer += 1;
+        setTimeout(function(){
+            captain.classList.add('active')
+            if(totalPlayer === 4){
+                startButton.classList.add('active')
+            }
+        }, 1000)
+    }
+    let captain = document.createElement('div')
+    captain.classList.add('captains')
+    captain.innerHTML = $('#usernameInput').val()
+    leftMenu.appendChild(captain)
+    totalPlayer += 1;
+    setTimeout(function(){
+        if(totalPlayer === 4){
+            startButton.classList.add('active')
+        }
+        captain.classList.add('active')
+    }, 1000)
 })
 function createRoom(username){
     socket.emit("createRoom", username)
 }
-function joinRoom(roomCode){
+function joinRoom(roomCode, username){
     socket.emit("joinRoom", roomCode, username)
 }
 function start(){
     socket.emit("start")
 }
 
-const joinRoomButton = document.querySelector('#joinRoomButton')
-const usernameInput = document.querySelector('#usernameInput')
-const roomCodeInput = document.querySelector('#roomCodeInput')
-
+startButton.addEventListener('click', function(){
+    start()
+})
 
 joinRoomButton.addEventListener('click', function(){
-    let roomCode = roomCodeInput.value
-    let username = usernameInput.value
+    let roomCode = roomCodeInput.value.toUpperCase()
+    let username = $('#usernameInput').val()
     if(username === '' || username === null){
-        alert('Username form not filled')
+        alert('Username not filled')
     } else{
         if(roomCode === '' || roomCode === null){
             createRoom(username)
         } else{
-            joinRoom(username, roomCode)
+            joinRoom(roomCode, username)
         }
     }
 })
