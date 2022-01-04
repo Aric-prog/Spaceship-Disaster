@@ -193,6 +193,7 @@ class Game {
         }
 
         function generatePanel6(panels, variation, scene,x){
+            let positions, specialCases;
             switch(variation){
                 case 0:
                     positions = [
