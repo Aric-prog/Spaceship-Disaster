@@ -60,15 +60,11 @@ function addTask(roomCode, panelUID , task, callback = ()=>{}){
         if(err){
             console.log(err);
         } else{
-            callback();
+            callback(panelUID);
         }
     })
 }
 
-function endRoom(sessionID){
-    // Get client room here and posts relevant data on database
-}
 
 
-
-module.exports = {addPlayerToRoom, getPlayerRoom, endRoom, addPanelList, addTask, setRoomStartedFlag}
+module.exports = {addPlayerToRoom, getPlayerRoom, addPanelList, addTask, setRoomStartedFlag}

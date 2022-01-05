@@ -27,7 +27,7 @@ class Game {
         scene.onBeforeRenderObservable.add(() => {
             if(animateRight){
                 if(camera.position.x > 0){
-                    camera.position.addInPlace(camera.getDirection(BABYLON.Vector3.Right()).scale(0.5))}
+                    camera.position.addInPlace(camera.getDirection(BABYLON.Vector3.Right()).scale(50))}
                 else{
                     animateRight = false
                     this.kurban(this.tempMeshList);
@@ -35,7 +35,7 @@ class Game {
             }
             if(animateLeft){
                 if(camera.position.x < 50){
-                    camera.position.addInPlace(camera.getDirection(BABYLON.Vector3.Left()).scale(0.5))}
+                    camera.position.addInPlace(camera.getDirection(BABYLON.Vector3.Left()).scale(50))}
                 else{
                     animateLeft=false
                     this.kurban(this.tempMeshList);
@@ -43,6 +43,7 @@ class Game {
             }
         });
     }
+
 
     generateControlPanel(panels, order, scene){
         this.tempMeshList = this.generator.meshList.slice();

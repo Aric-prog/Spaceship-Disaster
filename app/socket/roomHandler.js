@@ -2,6 +2,8 @@ const { customAlphabet } = require("nanoid");
 const nanoid = customAlphabet("123456789ABCDEFGHIJKLMNOPRSTUVWXYZ", 6);
 const redisHelper = require("./redisHelper.js")
 const { redisClient } = require("../redis.js");
+const { taskTimers, insertedTask } = require('./taskTimerVars.js')
+
 const roomAbleToStart = require("../middleware/roomAbleToStart.js");
 
 const Room = require('../room.js')
@@ -13,6 +15,18 @@ module.exports = function(io){
     // Initialize empty room variable that stores which room the player is in.
     redisClient.json_set('playerRooms', '.', JSON.stringify({}));
     redisClient.json_set('playerSockets', '.', JSON.stringify({}));
+
+    function endRoom(roomCode){
+        let insertedTaskList = insertedTask[[roomCode]]
+        for(const panelUID of insertedTaskList){
+            clearInterval(taskTimers[panelUID])
+        }
+        redisClient.json_del(roomCode, '.', function(err){
+            if(err){
+                console.log(err);
+            }
+        })
+    }
 
     io.on("connection", function(socket){
         const session = socket.handshake.session;
@@ -32,6 +46,7 @@ module.exports = function(io){
             session.playerName = playerName;
             socket.join(roomCode);
 
+            insertedTask[[roomCode]] = []
             let room = new Room(roomCode, playerName);
             let roomCreator = new Player(sessionID, socket.id, session.playerName);
 
@@ -121,7 +136,7 @@ module.exports = function(io){
                 if(durationOfRooms[roomCode] <= 0){
                     // Room is die when this happens, don't forget to clear room and stuff here
                     io.to(roomCode).emit('gameOver');
-                    redisHelper.endRoom(sessionID);
+                    endRoom(roomCode);
                     clearInterval(mainTimer);
                 }
                 io.to(roomCode).emit('timer', durationOfRooms[roomCode]);

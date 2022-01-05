@@ -1,3 +1,3 @@
 const taskTimers = {}
-
-module.exports = {taskTimers}
+const insertedTask = {}
+module.exports = {taskTimers, insertedTask}
