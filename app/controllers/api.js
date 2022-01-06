@@ -5,6 +5,8 @@ const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 const User = require('../model/user')
 const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
+const JWT_SECRET = 'iasjndboipasnudiopasudnasdasdasasasdas'
 
 mongoose.connect('mongodb://localhost:27017/user-app-db',{
     useNewUrlParser: true,
@@ -60,11 +62,28 @@ router.post('/register_user', async (req, res) => {
     res.json({status: 'ok'})
 })
 
-router.get('/login', function(req, res){
-    // Login function that checks with database goes here
-    req.session.randomVar = 5;
-    console.log(req.session);
-    res.json("now logged in ");
+router.post('/login_user', async (req, res) => {
+
+    const {username, password} = req.body
+    const user = await User.findOne({username}).lean()
+
+    if(!user){
+        return res.json({status:'error',error:'Invalid Username'})
+    }
+
+    if(await bcrypt.compare(password, user.password)) {
+        const token = jwt.sign({
+            id:user._id, 
+            username: user.username
+        }, JWT_SECRET)
+        console.log(token)
+        req.session.randomVar = 5;
+        console.log(req.session);
+        return res.json({status:'ok', data:token})
+    }
+
+
+    res.json({status:'error' ,error:'invalid Username/password'})
 })
 
 router.use('/*', auth)
