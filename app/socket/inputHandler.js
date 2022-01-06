@@ -37,7 +37,7 @@ module.exports = function(io){
                         categoryInput = (categoryInput === null) ? '' : categoryInput
                         console.log(categoryInput + ': ' + typeof categoryInput)
                         task.extraInfo = task.extraInfo.toString()
-                        if(task.takerSID === 'sidsid' + sessionID && task.extraInfo === categoryInput){
+                        if(task.takerSID === 'sid' + sessionID && task.extraInfo === categoryInput){
                             rightWrong = true
                             console.log("Task found and correct")
                             break

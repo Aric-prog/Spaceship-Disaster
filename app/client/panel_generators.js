@@ -342,12 +342,12 @@ class Generators {
         
         function initButtonAction(button, buttonmat, color){
             let newColor = new BABYLON.Color3(0,0,0);
-            if(color == 'red'){
+            if(color == 1){
                 newColor = new BABYLON.Color3(1,0,0);
-            } else if(color == 'blue'){
-                newColor = new BABYLON.Color3(0,0,1);
-            } else if(color == 'green'){
+            } else if(color == 2){
                 newColor = new BABYLON.Color3(0,1,0);
+            } else if(color == 3){
+                newColor = new BABYLON.Color3(0,0,1);
             } else{newColor = new BABYLON.Color3(1,1,0);}
 
             button.actionManager.registerAction(
@@ -399,10 +399,10 @@ class Generators {
             } else {return userSequence;}
         }
 
-        initButtonAction(redButton,redButtonMat,'red');
-        initButtonAction(blueButton,blueButtonMat,'blue');
-        initButtonAction(yellowButton,yellowButtonMat,'yellow');
-        initButtonAction(greenButton,greenButtonMat,'green');
+        initButtonAction(redButton,redButtonMat, 1);
+        initButtonAction(greenButton,greenButtonMat, 2);
+        initButtonAction(blueButton,blueButtonMat, 3);
+        initButtonAction(yellowButton,yellowButtonMat, 4);
     }
 
     generateLever(position, scaling, scene, orientation,name,uid){

@@ -4,12 +4,14 @@
 //   and not a fake emit from client
 // - Name of the task so we can reuse the same panel with them still being unique.
 class Task {
-    constructor(taskName, giverSID, takerSID, reward, panelUID, emergency = false){
+    constructor(taskName, giverSID, takerSID, reward, panelUID, taskType, taskCategory, emergency = false){
         this.taskName = taskName;
         this.giverSID = giverSID;
         this.takerSID = takerSID;
         this.panelUID = panelUID;
         this.reward = reward;
+        this.taskType = taskType;
+        this.taskCategory = taskCategory;
         this.emergency = emergency;
         this.extraInfo = "";
     };

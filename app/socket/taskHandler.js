@@ -5,6 +5,7 @@ const roomAbleToStart = require('../middleware/roomAbleToStart.js')
 const _ = require('lodash');
 const { taskTimers, insertedTask } = require('./taskTimerVars.js')
 const { durationOfRooms } = require('./roomTimerVars.js')
+const { taskToCommand } = require('./taskToCommand.js')
 
 const inputInfo = require("./inputInfo.js");
 
@@ -42,7 +43,7 @@ module.exports = function(io){
                     roomInfo = JSON.parse(roomInfo)
                     playerInfo = roomInfo['playerInfo'];
                     
-                    delete playerInfo['sid' + sessionID]
+                    delete playerInfo[sessionID]
                     let giverSID = _.sample(Object.keys(playerInfo));
 
                     let panelList = playerInfo[giverSID]['panelList']
@@ -57,10 +58,7 @@ module.exports = function(io){
                     let taskType = inputInfo.indexTopanelType[randomPanel.typeIndex]
                     let taskCategory = randomPanel.category;
                     
-                    // TODO : How to identify panel using task UID??
-                    // Approach 1 : find a way to do above
-                    // Approach 2 : screw it, each panel can only have one task
-                    let newTask = new Task(taskName, giverSID, 'sid' + sessionID, 1, panelUID);
+                    let newTask = new Task(taskName, giverSID, sessionID, 1, panelUID, taskType, taskCategory);
                     
                     if(taskCategory === "string"){
                         let stringRange = inputInfo.stringRange[taskType];
@@ -83,7 +81,8 @@ module.exports = function(io){
                                 console.log(err)
                             } else{
                                 socketID = socketID.toString().replace(new RegExp(/"/g), "")
-                                io.to(socketID).emit('newTask', newTask.taskName + ", extraInfo : " + String(newTask.extraInfo), duration)
+                                console.log(newTask)
+                                io.to(socketID).emit('newTask', taskToCommand(newTask), duration)
                                 taskTimers[panel] = setInterval(function(){
                                     duration -= 1;
                                     io.to(socketID).emit('taskTimer', duration)
@@ -91,7 +90,6 @@ module.exports = function(io){
                                         durationOfRooms[roomCode] -= penaltyAmount
                                         io.to(socketID).emit('penalty', penaltyAmount)
                                         // Create new task here
-
                                         insertedTask[[roomCode]] = _.without(insertedTask[[roomCode]], panel)
                                         clearInterval(taskTimers[panel])
                                         delete taskTimers[panel]
@@ -129,7 +127,7 @@ module.exports = function(io){
                         let panelTypeIndex = _.sample(panelTypePossibility[size]);
 
                         let type = panelType[panelTypeIndex];
-                        let category = inputInfo.typeToGeneric[type];
+                        let category = inputInfo.typeToCategory[type];
                         let name = _.sample(firstNamePool) + _.sample(secondNamePool);
                         
                         let panelID = nanoid();
