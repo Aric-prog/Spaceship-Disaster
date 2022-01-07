@@ -79,8 +79,47 @@
                 console.log((e['detail']['arrangement']))
                 game.newRound(e['detail']['panelList'],e['detail']['arrangement'],scene,camera)
             })
+
+            var popupWindow = function(fontSize = 12, fontStyle = "italic", fontFamily, bgColor, text){
+                var rect1 = new BABYLON.GUI.Rectangle();
+                rect1.height = "720px";
+                rect1.width = "1280px"
+                rect1.cornerRadius = 20;
+                rect1.thickness = 0;
+                rect1.background = bgColor;
+                rect1.alpha = 0.6;
+                ui.addControl(rect1);
+                
+
+                var text1 = new BABYLON.GUI.TextBlock();
+                text1.text = text;
+                text1.color = "white";
+                text1.width = "1080px";
+                text1.fontSize = fontSize;
+                text1.fontStyle = fontStyle;
+                text1.fontFamily = fontFamily;
+                text1.alpha = 1;
+                ui.addControl(text1);
+
+                const destroyButton = BABYLON.GUI.Button.CreateSimpleButton("destroyButton", "X");
+                destroyButton.width = "30px";
+                destroyButton.height = "30px";
+                destroyButton.top = "-350px";
+                destroyButton.left = "630px";
+                destroyButton.color = "white";
+                destroyButton.background = "black"; 
+                ui.addControl(destroyButton);
+
+                destroyButton.onPointerClickObservable.add(() => {
+                    text1.dispose();
+                    rect1.dispose();
+                    destroyButton.dispose();
+                });
+            };
+            
             return scene;
         };
+
 
         const scene = createScene(); //Call the createScene function
         
