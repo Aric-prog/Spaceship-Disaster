@@ -1129,7 +1129,7 @@ class Generators {
 
         function submitKeyPadSequence(sequence,name,uid){
             console.log([sequence,name,uid]);
-            socket.emit('sequence', sequence)
+            socket.emit('sequence', sequence, uid)
             sequence = [];
             return sequence;
         }

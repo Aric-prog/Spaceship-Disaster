@@ -90,6 +90,20 @@ module.exports = function(io){
             });
         });
 
+        socket.on("leaveRoom", function(){
+            redisClient.json_get('playerRooms', '.sid' + sessionID, function(err, roomCode){
+                if(err){
+                    console.log(err)
+                } else{
+                    socket.leave(roomCode)
+                    redisClient.json_del('playerRooms', '.sid' + sessionID, function(err){
+                        if(err){
+                            console.log(err)
+                        }
+                    })
+                }
+            })            
+        })
         socket.on("disconnecting", function(){
             let rooms = Object.keys(socket.rooms);
             rooms.forEach(function(roomCode){
@@ -137,6 +151,7 @@ module.exports = function(io){
                 if(durationOfRooms[roomCode] <= 0){
                     // Room is die when this happens, don't forget to clear room and stuff here
                     io.to(roomCode).emit('gameOver');
+                    io.to(roomCode).emit('timer', 0);
                     endRoom(roomCode);
                     clearInterval(mainTimer);
                 }

@@ -15,8 +15,18 @@ const Panel = require('../panel.js');
 module.exports = function(io){
     const panelType = ['button', 'slider', 'sequenceButton', 'lever', 'rotatingDial', 'joystick', 'keypad', 'toggle']
     
-    const firstNamePool = ['Rardo', 'Fantago', 'Lingubo', 'Leibniz', 'Phase', 'Alpha', 'Coperni', 'Joseph', 'Mass', 'Bose']
-    const secondNamePool = ['bar', 'aligner', 'morpher', 'dagger', 'meter', 'sift', 'cycle', 'joestar']
+    const firstNamePool = ['Rardo', 'Fantago', 'Lingubo', 'Leibniz', 'Phase', 'Alpha', 'Coperni', 'Joseph', 'Mass', 'Bose', 'Dio', 'Tako'
+    , 'Fulgural', 'Iono', 'Crotal', 'Ecydisis', 'Zigand', 'Guerilla', 'Key', 'George', 'Furni', 'Zygote', 'Foobar', 'Mood', 'Sigma'
+    , 'Sus', 'Amogus', 'Impsos', 'Omni', 'Dollop', 'Edgy', 'Spin', 'Fart', 'Areec', 'Yovven', 'Rona', 'Chronic', 'Mobile', 'Micro'
+    , 'Spoder', 'Fort', 'Riot', 'Burrito', 'Drogo', 'Xyclobe', 'Shroom', 'Celphic', 'Myniric', 'Juvonic', 'Varona', 'Chromi', 'Tecito'
+    , 'Calcula', 'Senuco', 'Munita', 'Naguric', 'Lusinic', 'Rifuna', 'Isoto', 'Parude']
+
+    const secondNamePool = ['bar', 'aligner', 'morpher', 'dagger', 'meter', 'sift', 'cycle', 'joestar', 'brando', 'phone', 'disorber'
+    , 'disposer', 'lysis', 'scape', 'globe', 'blaster', 'machine', 'system', 'blade' ,'philous', 'mancy', 'graph', 'noid', 'lite', 'male'
+    , 'burner', 'trix', 'dever', 'charge' , 'chungus', 'jitsu', 'smeller', 'hernando', 'yowen', 'legend', 'adder', 'reducer', 'plexer'
+    , 'silencer', 'nite', 'puller', 'morgan', 'faller', 'gamer', 'board', 'culler', 'moister', 'tiler', 'miner', 'eater', 'mizer', 'maxer'
+    , 'butter', 'haster', 'dragger', 'shift', 'warper', 'nector', 'shutter', 'closer']
+
 
     const arrangementForSize = {
         4 : [[1, 2, 2, 4], [1, 1, 3, 4], [1, 2, 3, 3], [2, 2, 2, 3]], 
@@ -179,6 +189,7 @@ module.exports = function(io){
         function validateInput(roomCode, sessionID, categoryInput, panelUID, socket){
             redisClient.json_get(roomCode, '.taskList.' + panelUID, function(err, value){
                 if(err){
+                    console.log(err)
                     console.log("Task is not valid")
                     // Give penalty here
                 } else{
@@ -220,6 +231,12 @@ module.exports = function(io){
                     }
                 }
             })
+            redisClient.json_get(roomCode, '.taskList', function(err,value){
+                if(err){console.log(err)}
+                else{
+                    console.log(JSON.parse(value))
+                }
+            })
         }
 
         socket.on("binary", function(panelUID){
@@ -233,6 +250,7 @@ module.exports = function(io){
         socket.on("sequence", function(sequenceInput, panelUID){
             let roomCode = socket.roomCode
             sequenceInput = sequenceInput.join('')
+            console.log(sequenceInput)
             validateInput(roomCode, sessionID, sequenceInput, panelUID, socket)
         })
         socket.on("string", function(stringInput, panelUID){

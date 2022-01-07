@@ -25,8 +25,7 @@ socket.on('playerJoined', function(playerName){
     captain.classList.add('captains')
     captain.innerHTML = playerName
     leftMenu.appendChild(captain)
-    totalPlayer += 1;
-    
+    totalPlayer = $('div.captains').length
     setTimeout(function(){
         captain.classList.add('active')
         if(totalPlayer === 4){
@@ -34,6 +33,14 @@ socket.on('playerJoined', function(playerName){
         }
     }, 1000)
     
+})
+
+socket.on('playersLeft', function(playerName){
+    $('div.captains').each(function(index){
+        if($(this).text() === playerName){
+            $(this).remove()
+        }
+    })
 })
 
 socket.on("newRound", function(panelList, arrangement){
@@ -52,6 +59,7 @@ socket.on("newTask", function(taskString, duration){
 })
 socket.on("roomCreated", function(roomCode){
     $('#room').text('Room : ' + roomCode);
+    exitButton.classList.add('active')
     alert("Succesfully joined room")
 });
 socket.on("error", function(err){
@@ -59,16 +67,18 @@ socket.on("error", function(err){
 })
 
 socket.on("joinedGameRoom", function(nameList){
+    $('div.captains').remove()
     let roomCode = roomCodeInput.value.toUpperCase()
     $('#room').text('Room : ' + roomCode);
     alert("Succesfully joined room")
     console.log(nameList)
+    exitButton.classList.add('active')
     for(const nameIndex in nameList){
         let captain = document.createElement('div')
         captain.classList.add('captains')
         captain.innerHTML = nameList[nameIndex]
         leftMenu.appendChild(captain)
-        totalPlayer += 1;
+        totalPlayer = $('div.captains').length
         setTimeout(function(){
             captain.classList.add('active')
             if(totalPlayer === 4){
@@ -80,7 +90,7 @@ socket.on("joinedGameRoom", function(nameList){
     captain.classList.add('captains')
     captain.innerHTML = $('#usernameInput').val()
     leftMenu.appendChild(captain)
-    totalPlayer += 1;
+    totalPlayer = $('div.captains').length
     setTimeout(function(){
         if(totalPlayer === 4){
             startButton.classList.add('active')
@@ -99,7 +109,10 @@ function start(){
 }
 
 exitButton.addEventListener('click', function(){
-    
+    socket.emit('leaveRoom')
+    exitButton.classList.remove('active')
+    startButton.classList.remove('active')
+    $('div.captains').remove()
 })  
 
 startButton.addEventListener('click', function(){
