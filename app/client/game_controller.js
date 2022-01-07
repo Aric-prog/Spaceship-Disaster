@@ -1,14 +1,12 @@
 class Game {
     
     constructor(socket){
-        this.socket = socket;
-        this.generator = new Generators();
+        this.generator = new Generators(socket);
         this.round = 0;
         this.tempMeshList = [];
     }
     
     newRound(panels,order,scene,camera){
-        console.log('test')
         this.generateControlPanel(panels,order,scene);
         this.animateCamera(camera);
     }
@@ -27,7 +25,7 @@ class Game {
         scene.onBeforeRenderObservable.add(() => {
             if(animateRight){
                 if(camera.position.x > 0){
-                    camera.position.addInPlace(camera.getDirection(BABYLON.Vector3.Right()).scale(50))}
+                    camera.position.addInPlace(camera.getDirection(BABYLON.Vector3.Right()).scale(0.9))}
                 else{
                     animateRight = false
                     this.kurban(this.tempMeshList);
@@ -35,7 +33,7 @@ class Game {
             }
             if(animateLeft){
                 if(camera.position.x < 50){
-                    camera.position.addInPlace(camera.getDirection(BABYLON.Vector3.Left()).scale(50))}
+                    camera.position.addInPlace(camera.getDirection(BABYLON.Vector3.Left()).scale(0.9))}
                 else{
                     animateLeft=false
                     this.kurban(this.tempMeshList);

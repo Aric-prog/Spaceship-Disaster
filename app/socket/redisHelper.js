@@ -64,7 +64,21 @@ function addTask(roomCode, panelUID , task, callback = ()=>{}){
         }
     })
 }
+function resetProgress(roomCode, callback){
+    redisClient.json_numincrby(roomCode, '.roomThreshold', 2, function(err){
+        if(err){
+            console.log(err)
+        }
+    })
+    redisClient.json_set(roomCode, '.progress', 0, function(err){
+        if(err){
+            console.log(err)
+        } else{
+            callback()
+        }
+    })
+}
 
 
 
-module.exports = {addPlayerToRoom, getPlayerRoom, addPanelList, addTask, setRoomStartedFlag}
+module.exports = {addPlayerToRoom, getPlayerRoom, addPanelList, addTask, setRoomStartedFlag, resetProgress}

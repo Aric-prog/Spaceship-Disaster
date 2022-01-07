@@ -5,6 +5,7 @@ const joinRoomButton = document.querySelector('#joinRoomButton')
 const roomCodeInput = document.querySelector('#roomCodeInput')
 const leftMenu = document.querySelector('#leftM')
 const startButton = document.querySelector('.startButton')
+const exitButton = document.querySelector('.exit-button')
 const timer = document.querySelector('.timer')
 socket.on("timer", function(timeInSec){
     $('.timer').html('Time : ' + String(timeInSec))
@@ -96,6 +97,10 @@ function joinRoom(roomCode, username){
 function start(){
     socket.emit("start")
 }
+
+exitButton.addEventListener('click', function(){
+    
+})  
 
 startButton.addEventListener('click', function(){
     start()

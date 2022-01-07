@@ -181,3 +181,22 @@ html, body {
     color: #696969;
     font-family: 'Courier New', Courier, monospace;
 }
+.exit-button{
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    flex-grow: 0;
+    width: fit-content;
+    cursor: pointer;
+    height: 0px;
+    transition: height 0.3s ease-in-out;
+}
+.exit-button.active{
+    height: 30px;
+    padding: 3px;
+}
+.exit-text{
+    font-family: 'Courier New', Courier, monospace;
+    margin-left: 5px;
+    font-size: 18px;
+}

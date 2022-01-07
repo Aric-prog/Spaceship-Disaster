@@ -1,6 +1,7 @@
 class Generators {
-    constructor(scene){
+    constructor(socket){
         this.meshList = [];
+        this.socket = socket
     }
 
     generateButton(position, scaling, scene, name, uid){
@@ -16,11 +17,14 @@ class Generators {
 
         button.actionManager = new BABYLON.ActionManager(scene);
         let downFlag = false;
+        let _this = this;
         button.actionManager.registerAction(
             new BABYLON.ExecuteCodeAction(
                 BABYLON.ActionManager.OnPickTrigger,
                 function () {
                     console.log(['cum',name,uid]);
+                    // How javascript forces me to do this evilness
+                    _this.socket.emit('binary', uid)
                     scene.registerBeforeRender(buttonCallback);
                 }
             )
@@ -39,7 +43,6 @@ class Generators {
             }
         }
         this.onHover(button,buttonMat,'blue');
-
     }
 
     generateBase(scaling,position,type,name,scene){
@@ -274,7 +277,8 @@ class Generators {
         }
         }
         function sliderUpdate(status,slider, max, min, mid, interval, name, uid){
-            console.log([status,name,uid])
+            // console.log([status,name,uid])
+            socket.emit('numeric', status, uid)
             switch(status){
                 case -2:
                     if(orientation == 'vertical'){slider.position.z = min}
@@ -392,8 +396,9 @@ class Generators {
                 sequenceButtonMat[1].diffuseColor = new BABYLON.Color3(0,0.5,0);
                 sequenceButtonMat[2].diffuseColor = new BABYLON.Color3(0.5,0.5,0);
                 sequenceButtonMat[3].diffuseColor = new BABYLON.Color3(0,0,0.5);
-            
+                
                 console.log([userSequence,name,uid]);
+                socket.emit('sequence', userSequence, uid)
                 userSequence = [];
                 return userSequence;
             } else {return userSequence;}
@@ -419,6 +424,7 @@ class Generators {
         } else {leverScaling['x'] *= scaling}
         
         let leverState = 0;
+        let _this = this
         leverMat.diffuseColor = new BABYLON.Color3(0,0,0.6);
         lever.material = leverMat;
         lever.position = new BABYLON.Vector3(position['x'],base.scaling.y/2,position['z']);
@@ -439,13 +445,13 @@ class Generators {
                     if(leverState == 0){
                         leverState = 1;
                         leverStatusMat.diffuseColor = new BABYLON.Color3(0,1,0);
-                        console.log(['yummy',name,uid]);
+                        _this.socket.emit('binary', uid)
                         scene.registerBeforeRender(leverCallback);
                     }
                     else {
                         leverState = 0;
                         leverStatusMat.diffuseColor = new BABYLON.Color3(1,0,0);
-                        console.log(['tummy',name,uid]);
+                        _this.socket.emit('binary', uid)
                         scene.registerBeforeRender(leverCallback);
                     }
                 }
@@ -621,6 +627,7 @@ class Generators {
             const midMin = (Math.PI/180) * midMinDeg;
             const midMax = (Math.PI/180) * midMaxDeg;
             console.log([status, name, uid])
+            socket.emit('numeric', status, uid)
 
             switch(status){
                 case 0:
@@ -822,6 +829,7 @@ class Generators {
                     lines[3].color = new BABYLON.Color3(1,1,1);
                     joyStick.position.x = xMid;
                     joyStick.position.z = zMin;
+                    socket.emit('numeric', status, uid)
                     break;
                 
                 case 2:
@@ -831,6 +839,7 @@ class Generators {
                     lines[3].color = new BABYLON.Color3(1,1,1);
                     joyStick.position.x = xMin;
                     joyStick.position.z = zMin;
+                    socket.emit('numeric', status, uid)
                     break;
                 
                 case 3:
@@ -840,6 +849,7 @@ class Generators {
                     lines[2].color = new BABYLON.Color3(1,1,1);
                     joyStick.position.x = xMin;
                     joyStick.position.z = zMid;
+                    socket.emit('numeric', status, uid)
                     break;
 
                 case 4:
@@ -849,6 +859,7 @@ class Generators {
                     lines[3].color = new BABYLON.Color3(1,1,1);
                     joyStick.position.x = xMin;
                     joyStick.position.z = zMax;
+                    socket.emit('numeric', status, uid)
                     break;
 
                 case 5:
@@ -858,6 +869,7 @@ class Generators {
                     lines[3].color = new BABYLON.Color3(1,1,1);
                     joyStick.position.x = xMid;
                     joyStick.position.z = zMax;
+                    socket.emit('numeric', status, uid)
                     break;
 
                 case 6:
@@ -867,6 +879,7 @@ class Generators {
                     lines[3].color = new BABYLON.Color3(1,1,1);
                     joyStick.position.x = xMax;
                     joyStick.position.z = zMax;
+                    socket.emit('numeric', status, uid)
                     break;
 
                 case 7:
@@ -876,6 +889,7 @@ class Generators {
                     lines[2].color = new BABYLON.Color3(1,1,1);
                     joyStick.position.x = xMax;
                     joyStick.position.z = zMid;
+                    socket.emit('numeric', status, uid)
                     break;
                 
                 case 8:
@@ -885,6 +899,7 @@ class Generators {
                     lines[3].color = new BABYLON.Color3(1,1,1);
                     joyStick.position.x = xMax;
                     joyStick.position.z = zMin;
+                    socket.emit('numeric', status, uid)
                     break;
             }
             
@@ -1114,6 +1129,7 @@ class Generators {
 
         function submitKeyPadSequence(sequence,name,uid){
             console.log([sequence,name,uid]);
+            socket.emit('sequence', sequence)
             sequence = [];
             return sequence;
         }
@@ -1186,8 +1202,8 @@ class Generators {
         ]
             button4.actionManager = new BABYLON.ActionManager(scene);
             button5.actionManager = new BABYLON.ActionManager(scene);
-            initToggleButtonAction(button4,button4Mat,'yellow');
-            initToggleButtonAction(button5,button5Mat,'purple');
+            initToggleButtonAction(button4,button4Mat, 4);
+            initToggleButtonAction(button5,button5Mat, 5);
         }
         for(let i = 0; i < buttons.length; i++){
             buttons[i].scaling = buttonScaling;
@@ -1196,19 +1212,19 @@ class Generators {
             if(i <3){buttons[i].actionManager = new BABYLON.ActionManager(scene);}
         }
         
-        initToggleButtonAction(button1,button1Mat,'red');
-        initToggleButtonAction(button2,button2Mat,'green');
-        initToggleButtonAction(button3,button3Mat,'blue');
+        initToggleButtonAction(button1,button1Mat, 1);
+        initToggleButtonAction(button2,button2Mat, 2);
+        initToggleButtonAction(button3,button3Mat, 3);
 
         function initToggleButtonAction(mesh, meshMat, color){
             let newColor = new BABYLON.Color3(0,0,0);
-            if(color == 'red'){
+            if(color ===  1){
                 newColor = new BABYLON.Color3(1,0,0);
-            } else if(color == 'blue'){
+            } else if(color ===  3){
                 newColor = new BABYLON.Color3(0,0,1);
-            } else if(color == 'green'){
+            } else if(color ===  2){
                 newColor = new BABYLON.Color3(0,1,0);
-            } else if(color == 'yellow'){
+            } else if(color ===  4){
                 newColor = new BABYLON.Color3(1,1,0);
             } else{newColor = new BABYLON.Color3(1,0,1);}
 
@@ -1217,6 +1233,7 @@ class Generators {
                     BABYLON.ActionManager.OnPickTrigger,
                     function(){
                         console.log([color,name,uid]);
+                        socket.emit('numeric', color, uid)
                         meshMat.diffuseColor = newColor;
                         scene.registerBeforeRender(toggleButtonCallback);
                         for(let i = 0;i<buttonMats.length;i++){

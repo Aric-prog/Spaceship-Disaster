@@ -1,11 +1,11 @@
 const { nanoid } = require('nanoid');
 const redisHelper = require('./redisHelper.js')
 const { redisClient } = require('../redis.js')
-const roomAbleToStart = require('../middleware/roomAbleToStart.js')
 const _ = require('lodash');
 const { taskTimers, insertedTask } = require('./taskTimerVars.js')
 const { durationOfRooms } = require('./roomTimerVars.js')
 const { taskToCommand } = require('./taskToCommand.js')
+const attachRoomCode = require("../middleware/attachRoomCode.js");
 
 const inputInfo = require("./inputInfo.js");
 
@@ -58,7 +58,7 @@ module.exports = function(io){
                     let taskType = inputInfo.indexTopanelType[randomPanel.typeIndex]
                     let taskCategory = randomPanel.category;
                     
-                    let newTask = new Task(taskName, giverSID, sessionID, 1, panelUID, taskType, taskCategory);
+                    let newTask = new Task(taskName, sessionID, giverSID, 1, panelUID, taskType, taskCategory);
                     
                     if(taskCategory === "string"){
                         let stringRange = inputInfo.stringRange[taskType];
@@ -69,8 +69,12 @@ module.exports = function(io){
                         // Don't forget to check if input type is toggle, ask yowen at what size does the input size becomes larger as well
                         if(taskType === "slider" && randomPanel.size >= 2){
                             numericRange = 5;
+                            newTask.extraInfo = _.sample(_.range(-2, -2 + numericRange))
+                        } else if(taskType === "slider"){
+                            newTask.extraInfo = _.sample(_.range(-1, -1 + numericRange))
+                        } else{
+                            newTask.extraInfo = _.sample(_.range(1, (numericRange + 1)));
                         }
-                        newTask.extraInfo = _.sample(_.range(1, (numericRange + 1)));
                     }
 
                     // Callback to initialize timer once task is inside redis
@@ -81,7 +85,6 @@ module.exports = function(io){
                                 console.log(err)
                             } else{
                                 socketID = socketID.toString().replace(new RegExp(/"/g), "")
-                                console.log(newTask)
                                 io.to(socketID).emit('newTask', taskToCommand(newTask), duration)
                                 taskTimers[panel] = setInterval(function(){
                                     duration -= 1;
@@ -161,13 +164,80 @@ module.exports = function(io){
         socket.on('start', function(){
             // Generate panel distribution amount of 4,5,5,6
             let roomCode = socket.roomCode;
-            console.log(roomCode)
             // Make this a generic new round function, since the process is the same for new rounds
             newRound(roomCode, sessionID, socket)
         })
-        socket.on('test', function(arg){
-            // Test function for literally anything
-            
+        
+        socket.use(function(packet, next){
+            packet.push(sessionID);
+            packet.push(socket);
+            next()
+        })
+
+        socket.use(attachRoomCode)
+
+        function validateInput(roomCode, sessionID, categoryInput, panelUID, socket){
+            redisClient.json_get(roomCode, '.taskList.' + panelUID, function(err, value){
+                if(err){
+                    console.log("Task is not valid")
+                    // Give penalty here
+                } else{
+                    let task = JSON.parse(value)
+                    console.log(task)
+                    console.log(categoryInput)
+                    console.log('sid' + sessionID)
+                    categoryInput = (categoryInput === null) ? '' : categoryInput.toString()
+                    task.extraInfo = task.extraInfo.toString()
+                    if(task.takerSID === 'sid' + sessionID && task.extraInfo === categoryInput){
+                        console.log("Task found and correct")
+                        clearInterval(taskTimers[panelUID])
+                        // Give reward, check if reward is enough to cross threshold
+                        redisClient.json_numincrby(roomCode, '.progress', 1, function(err){
+                            if(err){
+                                console.log(err)
+                            } else{
+                                redisClient.json_get(roomCode, '.', function(err, roomInfo){
+                                    if(err){
+                                        console.log(err)
+                                    } else{
+                                        roomInfo = JSON.parse(roomInfo)
+                                        if(roomInfo.progress >= roomInfo.roomThreshold){
+                                            const callback = function(){
+                                                newRound(roomCode, 'sid' + sessionID, socket)
+                                            }
+                                            redisHelper.resetProgress(roomCode, callback)
+                                        } else{
+                                            createTask(roomCode, task.giverSID)
+                                        }
+                                    }
+                                })
+                            }
+                        })
+                    }
+                    else{
+                        console.log("Task is not valid")
+                        // Give penalty here
+                    }
+                }
+            })
+        }
+
+        socket.on("binary", function(panelUID){
+            let roomCode = socket.roomCode
+            validateInput(roomCode, sessionID, '', panelUID, socket)
+        })
+        socket.on("numeric", function(numericInput, panelUID){
+            let roomCode = socket.roomCode
+            validateInput(roomCode, sessionID, numericInput, panelUID, socket)
+        })
+        socket.on("sequence", function(sequenceInput, panelUID){
+            let roomCode = socket.roomCode
+            sequenceInput = sequenceInput.join('')
+            validateInput(roomCode, sessionID, sequenceInput, panelUID, socket)
+        })
+        socket.on("string", function(stringInput, panelUID){
+            let roomCode = socket.roomCode
+            validateInput(roomCode, sessionID, stringInput, panelUID, socket)
         })
     })
 }

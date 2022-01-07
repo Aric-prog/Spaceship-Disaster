@@ -18,6 +18,7 @@ module.exports = function(io){
 
     function endRoom(roomCode){
         let insertedTaskList = insertedTask[[roomCode]]
+        io.socketsLeave(roomCode)
         for(const panelUID of insertedTaskList){
             clearInterval(taskTimers[panelUID])
         }

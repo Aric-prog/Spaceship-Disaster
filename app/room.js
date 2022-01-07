@@ -5,6 +5,7 @@ class Room {
         this.rounds = 1;
         
         this.progress = 0;
+        this.currentThreshold = 5;
         // Contains relevant data on all players inside the room
         // Players are identified by their session ID.
         
