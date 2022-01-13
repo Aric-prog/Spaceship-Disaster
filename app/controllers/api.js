@@ -4,6 +4,7 @@ const router = express.Router()
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 const User = require('../model/user')
+const Leaderboard = require('../model/leaderboard')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const JWT_SECRET = 'iasjndboipasnudiopasudnasdasdasasasdas'
@@ -87,11 +88,32 @@ router.post('/login_user', async (req, res) => {
 })
 
 router.use('/*', auth)
-router.get('/leaderboard', function(req, res){
+router.get('/get_leaderboard', function(req, res){
     // Get leaderboard data
+    Leaderboard.find({}, function(err, result) {
+        if (err) {
+          res.send(err);
+        } else {
+          res.send(result);
+        }
+      });
 })
-router.post('/leaderboard', function(req, res){
+router.post('/post_leaderboard', async(req, res) =>{
     // Post leaderboard data, leaderboard data will be in the form of 'Team name - Time survived - Rounds'
+    const {team_name, time, round} = req.body
+    try {
+        const response = await Leaderboard.create({
+            team_name,
+            time,
+            round
+        })
+        console.log('Leaderboard posted succesfully',response)
+        
+    } catch (error){
+        throw error
+    }
+    res.json({status: 'ok'})
 })
+
 
 module.exports = router

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+    </head>
+    <body>
+        <h1>Leaderboard</h1>
+        <form id = "leaderboard">
+            <input type = "text" autocomplete="off" id="team_name" placeholder="Team Name" />
+            <input type = "number" id="time" placeholder="Time" />
+            <input type = "number" id="round" placeholder="Round" />
+            <input type = "submit" value="Submit" />
+        </form>
+
+        <script>
+            const form = document.getElementById("leaderboard")
+            form.addEventListener('submit',postLeaderboard)
+
+            async function postLeaderboard(event) {
+                event.preventDefault()
+                const team_name = document.getElementById('team_name').value
+                const time = document.getElementById('time').value
+                const round = document.getElementById('round').value
+                const result = await fetch('/api/post_leaderboard', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        team_name,
+                        time,
+                        round
+                    })
+                }).then((res) => res.json())
+
+                if(result.status === 'ok'){
+                    console.log(result.data)
+                    alert('posting in leaderbord Success')
+                }
+                else{
+                    alert(result.error)
+                }
+            }
+        </script>
+    </body>
+</html>        
