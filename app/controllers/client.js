@@ -16,5 +16,8 @@ router.get('/register', function(req, res){
 router.get('/login', function(req, res){
     res.sendFile(path.join(__dirname, '../client', 'test_login.html'));
 });
+router.get('/leaderboard', function(req, res){
+    res.sendFile(path.join(__dirname, '../client', 'test_leaderboard.html'));
+});
 
 module.exports = router;
