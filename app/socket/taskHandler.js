@@ -89,7 +89,7 @@ module.exports = function(io){
 
                     // Callback to initialize timer once task is inside redis
                     const callback = function(panel){
-                        let duration = _.random(12,15);
+                        let duration = _.random(30,39);
                         redisClient.json_get('playerSockets', sessionID, function(err, socketID){
                             if(err){
                                 console.log(err)
@@ -104,6 +104,7 @@ module.exports = function(io){
                                         io.to(socketID).emit('penalty', penaltyAmount)
                                         // Create new task here
                                         insertedTask[[roomCode]] = _.without(insertedTask[[roomCode]], panel)
+                                        
                                         clearInterval(taskTimers[panel])
                                         delete taskTimers[panel]
                                         createTask(roomCode, sessionID)
@@ -195,13 +196,13 @@ module.exports = function(io){
                 } else{
                     let task = JSON.parse(value)
                     console.log(task)
-                    console.log(categoryInput)
                     console.log('sid' + sessionID)
                     categoryInput = (categoryInput === null) ? '' : categoryInput.toString()
                     task.extraInfo = task.extraInfo.toString()
                     if(task.takerSID === 'sid' + sessionID && task.extraInfo === categoryInput){
                         console.log("Task found and correct")
                         clearInterval(taskTimers[panelUID])
+                        delete taskTimers[panelUID]
                         // Give reward, check if reward is enough to cross threshold
                         redisClient.json_numincrby(roomCode, '.progress', 1, function(err){
                             if(err){

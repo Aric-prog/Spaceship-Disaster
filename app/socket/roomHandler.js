@@ -63,7 +63,6 @@ module.exports = function(io){
                     io.to(roomCode).emit("playerJoined", playerName);
                 };
             });
-            
         });
         socket.on("joinRoom", function(roomCode, playerName){
             // Check if roomcode exist in the server list
@@ -143,8 +142,8 @@ module.exports = function(io){
             // Room start initialize here
             // Generate lists of tasks here
             io.to(roomCode).emit('startGame');
-            redisHelper.setRoomStartedFlag(roomCode)
-            durationOfRooms[roomCode] = 60
+            redisHelper.setRoomStartedFlag(roomCode);
+            durationOfRooms[roomCode] = 180;
             // TODO : Remember the time in the rooms, to be used later for penalties when they fuck up
             const mainTimer = setInterval(function(){
                 durationOfRooms[roomCode] -= 1;
@@ -161,7 +160,7 @@ module.exports = function(io){
         })
 
         socket.on("error", function(err){
-            io.to(socket.id).emit('error', String(err))
+            io.to(socket.id).emit('error', String(err));
         })
     })   
 }
