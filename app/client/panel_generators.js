@@ -367,7 +367,7 @@ class Generators {
 
                         function sequenceButtonCallback(){
                             if(button.position.y > 0.3){
-                                button.position.y -= 0.05;
+                                button.position.y -= 0.03;
                             } else{
                                 if(userSequence.length == 0){
                                     scene.registerBeforeRender(sequenceButtonCallback2);
@@ -378,7 +378,7 @@ class Generators {
                         function sequenceButtonCallback2(){
                             for(let i = 0; i < sequenceButton.length; i++){
                                 if(sequenceButton[i].position.y < 0.5){
-                                    sequenceButton[i].position.y += 0.05
+                                    sequenceButton[i].position.y += 0.03
                                 }
                             }
                             if(sequenceButton[0].position.y == 0.5 && sequenceButton[1].position.y == 0.5 && sequenceButton[2].position.y == 0.5 && sequenceButton[3].position.y == 0.5){

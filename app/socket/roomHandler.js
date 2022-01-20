@@ -18,13 +18,13 @@ module.exports = function(io){
     redisClient.json_set('playerSockets', '.', JSON.stringify({}));
 
     function endRoom(roomCode){
+        roomCode = _.replace(roomCode, /"/g, "")
         let insertedTaskList = insertedTask[[roomCode]]
         io.socketsLeave(roomCode)
-        if(typeof insertedTaskList !== 'undefined'){
-            for(const panelUID of insertedTaskList){
-                clearInterval(taskTimers[panelUID])
-                delete taskTimers[panelUID]
-            }
+        
+        for(const panelUID of insertedTaskList){
+            clearInterval(taskTimers[panelUID])
+            delete taskTimers[panelUID]
         }
         redisClient.json_del(roomCode, '.', function(err){
             if(err){
