@@ -163,10 +163,10 @@ module.exports = function(io){
     };
 
     function newRound(roomCode){
+        durationOfRooms[roomCode] = 180;
         const callback = function(sessionID){
             createTask(roomCode, sessionID)
         }
-
         createPanelForRoom(roomCode, callback);
     }
 
