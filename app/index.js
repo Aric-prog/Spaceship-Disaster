@@ -15,7 +15,7 @@ const routes = require('./controllers/routes.js');
 app.use(cors())
 const io = new Server(httpServer, {
     cors:{
-        origin: "http://localhost:3000"
+        origin: "http://sigma.jasoncoding.com:3000"
     }
 })
 

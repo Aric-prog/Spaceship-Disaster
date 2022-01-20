@@ -9,8 +9,7 @@ const RedisStore = connectRedis(expressSession)
 rejson(redis)
 const redisClient = redis.createClient({
     host : config.redis.host,
-    port : config.redis.port,
-    auth_pass : config.redis.auth
+    port : config.redis.port
 });
 
 redisClient.on('error', function(err){

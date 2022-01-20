@@ -59,7 +59,7 @@
     <div id="taskBg"></div>
     <canvas id="renderCanvas" touch-action="none"></canvas> <!-- touch-action="none" for best results from PEP -->
     <script>
-        const socket = io('http://localhost:3000');
+        const socket = io('http://sigma.jasoncoding.com:3000');
         const canvas = document.getElementById("renderCanvas"); // Get the canvas element
         const engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
         const listener = document.querySelector('#leftM');
