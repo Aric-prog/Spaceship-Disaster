@@ -92,17 +92,11 @@ module.exports = function(io){
         });
 
         socket.on("leaveRoom", function(){
-            let insertedTaskList = insertedTask[[roomCode]]
-            io.socketsLeave(roomCode)
-            for(const panelUID of insertedTaskList){
-                clearInterval(taskTimers[panelUID])
-                delete taskTimers[panelUID]
-            }
             redisClient.json_get('playerRooms', '.sid' + sessionID, function(err, roomCode){
                 if(err){
                     console.log(err)
                 } else{
-                    socket.leave(roomCode)
+                    endRoom(roomCode)
                     redisClient.json_del('playerRooms', '.sid' + sessionID, function(err){
                         if(err){
                             console.log(err)
