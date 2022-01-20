@@ -76,21 +76,24 @@ module.exports = function(io){
 
             redisClient.json_get(roomCode, '.playerInfo', function(err, playerInfo){
                 playerInfo = JSON.parse(playerInfo);
-                let playerCountInRoom = Object.keys(playerInfo).length;
-                if(err || playerCountInRoom === null){
+                if(err || playerInfo === null){
                     console.log(err)
                     io.to(socket.id).emit("error", "Room does not exist");
-                } else if(playerCountInRoom >= 4){
-                    io.to(socket.id).emit("error", "Cannot join a full room.");
                 } else{
-                    redisHelper.addPlayerToRoom(io, roomCode, joiningPlayer, socket);
-                    let nameList = []
-                    for(const i in playerInfo){
-                        nameList.push(playerInfo[i]['username'])
-                    }
-                    io.to(roomCode).emit("playerJoined", playerName);
-                    io.to(socket.id).emit("joinedGameRoom", nameList);
-                };
+                    let playerCountInRoom = Object.keys(playerInfo).length;
+                    if(playerCountInRoom >= 4){
+                        io.to(socket.id).emit("error", "Cannot join a full room.");
+                    } else{
+                        redisHelper.addPlayerToRoom(io, roomCode, joiningPlayer, socket);
+                        let nameList = []
+                        for(const i in playerInfo){
+                            nameList.push(playerInfo[i]['username'])
+                        }
+                        io.to(roomCode).emit("playerJoined", playerName);
+                        io.to(socket.id).emit("joinedGameRoom", nameList);
+                    };
+                }
+                
             });
         });
 
