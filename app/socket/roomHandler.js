@@ -20,9 +20,11 @@ module.exports = function(io){
     function endRoom(roomCode){
         let insertedTaskList = insertedTask[[roomCode]]
         io.socketsLeave(roomCode)
-        for(const panelUID of insertedTaskList){
-            clearInterval(taskTimers[panelUID])
-            delete taskTimers[panelUID]
+        if(insertedTaskList.length !== 0){
+            for(const panelUID of insertedTaskList){
+                clearInterval(taskTimers[panelUID])
+                delete taskTimers[panelUID]
+            }
         }
         redisClient.json_del(roomCode, '.', function(err){
             if(err){
