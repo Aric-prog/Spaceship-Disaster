@@ -1,6 +1,8 @@
 let totalTaskDuration = 0;
 let totalPlayer = 0;
-
+let currentProgress = 0;
+let threshold = 0;
+let roundNumber = 0;
 const joinRoomButton = document.querySelector('#joinRoomButton')
 const roomCodeInput = document.querySelector('#roomCodeInput')
 const leftMenu = document.querySelector('#leftM')
@@ -44,6 +46,8 @@ socket.on('playersLeft', function(playerName){
 })
 
 socket.on("newRound", function(panelList, arrangement){
+    roundNumber += 1;
+    $('.round').html('Round : ' + roundNumber)
     const event = new CustomEvent('newRound', {detail : 
             {'panelList' : panelList, 'arrangement' : arrangement}
         }
@@ -51,6 +55,16 @@ socket.on("newRound", function(panelList, arrangement){
     leftMenu.dispatchEvent(event)
 })
 
+socket.on("progress", function(){
+    currentProgress += 1;
+    $('.progress').html('Progress : ' + currentProgress + ' / ' + threshold);
+})
+
+socket.on("threshold", function(t){
+    currentProgress = 0;
+    threshold = t;
+    $('.progress').html('Progress : ' + currentProgress + ' / ' + threshold)
+})
 socket.on("newTask", function(taskString, duration){
     console.log('newTask')
     

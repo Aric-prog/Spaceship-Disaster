@@ -53,7 +53,6 @@ module.exports = function(io){
                     roomInfo = JSON.parse(roomInfo)
                     playerInfo = roomInfo['playerInfo'];
                     
-                    delete playerInfo[sessionID]
                     let giverSID = _.sample(Object.keys(playerInfo));
 
                     let panelList = playerInfo[giverSID]['panelList']
@@ -167,6 +166,7 @@ module.exports = function(io){
         const callback = function(sessionID){
             createTask(roomCode, sessionID)
         }
+
         createPanelForRoom(roomCode, callback);
     }
 
@@ -195,8 +195,6 @@ module.exports = function(io){
                     // Give penalty here
                 } else{
                     let task = JSON.parse(value)
-                    console.log(task)
-                    console.log('sid' + sessionID)
                     categoryInput = (categoryInput === null) ? '' : categoryInput.toString()
                     task.extraInfo = task.extraInfo.toString()
                     if(task.takerSID === 'sid' + sessionID && task.extraInfo === categoryInput){
@@ -212,11 +210,18 @@ module.exports = function(io){
                                     if(err){
                                         console.log(err)
                                     } else{
+                                        io.to(roomCode).emit('progress')
                                         roomInfo = JSON.parse(roomInfo)
                                         if(roomInfo.progress >= roomInfo.roomThreshold){
                                             const callback = function(){
+                                                for(const panelUID of insertedTaskList){
+                                                    clearInterval(taskTimers[panelUID])
+                                                    delete taskTimers[panelUID]
+                                                }
                                                 newRound(roomCode, 'sid' + sessionID, socket)
                                             }
+                                            let insertedTaskList = insertedTask[[roomCode]]
+                                            io.to(roomCode).emit('threshold', roomInfo.roomThreshold + 2)
                                             redisHelper.resetProgress(roomCode, callback)
                                         } else{
                                             createTask(roomCode, task.giverSID)
@@ -230,12 +235,6 @@ module.exports = function(io){
                         console.log("Task is not valid")
                         // Give penalty here
                     }
-                }
-            })
-            redisClient.json_get(roomCode, '.taskList', function(err,value){
-                if(err){console.log(err)}
-                else{
-                    console.log(JSON.parse(value))
                 }
             })
         }

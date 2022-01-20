@@ -10,6 +10,7 @@ const Room = require('../room.js')
 const Player = require("../player.js");
 const {mainTimers, durationOfRooms} = require("./roomTimerVars.js");
 const attachRoomCode = require("../middleware/attachRoomCode.js");
+const STARTING_ROOM_THRESHOLD = 2;
 
 module.exports = function(io){
     // Initialize empty room variable that stores which room the player is in.
@@ -21,6 +22,7 @@ module.exports = function(io){
         io.socketsLeave(roomCode)
         for(const panelUID of insertedTaskList){
             clearInterval(taskTimers[panelUID])
+            delete taskTimers[panelUID]
         }
         redisClient.json_del(roomCode, '.', function(err){
             if(err){
@@ -48,7 +50,8 @@ module.exports = function(io){
             socket.join(roomCode);
 
             insertedTask[[roomCode]] = []
-            let room = new Room(roomCode, playerName);
+            let room = new Room(roomCode, STARTING_ROOM_THRESHOLD);
+            console.log(room)
             let roomCreator = new Player(sessionID, socket.id, session.playerName);
 
             redisClient.json_set(roomCode, '.', JSON.stringify(room), function(err){
@@ -142,6 +145,7 @@ module.exports = function(io){
             // Room start initialize here
             // Generate lists of tasks here
             io.to(roomCode).emit('startGame');
+            io.to(roomCode).emit("threshold", STARTING_ROOM_THRESHOLD);
             redisHelper.setRoomStartedFlag(roomCode);
             durationOfRooms[roomCode] = 180;
             // TODO : Remember the time in the rooms, to be used later for penalties when they fuck up

@@ -1,11 +1,11 @@
 // Contains all the data needed for one room
 class Room {
-    constructor(roomCode){
+    constructor(roomCode, roomThreshold){
         this.roomCode = roomCode;
         this.rounds = 1;
         
         this.progress = 0;
-        this.currentThreshold = 1;
+        this.roomThreshold = roomThreshold;
         // Contains relevant data on all players inside the room
         // Players are identified by their session ID.
         
