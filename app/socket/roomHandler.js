@@ -5,7 +5,7 @@ const { redisClient } = require("../redis.js");
 const { taskTimers, insertedTask } = require('./taskTimerVars.js')
 
 const roomAbleToStart = require("../middleware/roomAbleToStart.js");
-
+const _ = require('lodash')
 const Room = require('../room.js')
 const Player = require("../player.js");
 const {mainTimers, durationOfRooms} = require("./roomTimerVars.js");
@@ -19,6 +19,7 @@ module.exports = function(io){
 
     function endRoom(roomCode){
         roomCode = _.replace(roomCode, /"/g, "")
+        console.log(roomCode)
         let insertedTaskList = insertedTask[[roomCode]]
         io.socketsLeave(roomCode)
         
