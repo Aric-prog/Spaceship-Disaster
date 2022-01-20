@@ -212,6 +212,7 @@ module.exports = function(io){
                                     } else{
                                         io.to(roomCode).emit('progress')
                                         roomInfo = JSON.parse(roomInfo)
+                                        console.log(roomInfo.progress, roomInfo.roomThreshold)
                                         if(roomInfo.progress >= roomInfo.roomThreshold){
                                             const callback = function(){
                                                 for(const panelUID of insertedTaskList){
@@ -221,6 +222,7 @@ module.exports = function(io){
                                                 newRound(roomCode, 'sid' + sessionID, socket)
                                             }
                                             let insertedTaskList = insertedTask[[roomCode]]
+                                            durationOfRooms[roomCode] = 180
                                             io.to(roomCode).emit('threshold', roomInfo.roomThreshold + 2)
                                             redisHelper.resetProgress(roomCode, callback)
                                         } else{

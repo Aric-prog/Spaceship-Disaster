@@ -54,7 +54,6 @@ module.exports = function(io){
             let room = new Room(roomCode, STARTING_ROOM_THRESHOLD);
             console.log(room)
             let roomCreator = new Player(sessionID, socket.id, session.playerName);
-
             redisClient.json_set(roomCode, '.', JSON.stringify(room), function(err){
                 if(err){
                     console.log(err);
